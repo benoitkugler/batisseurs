@@ -61,7 +61,7 @@ class Building {
   final int id;
   final int idTeam;
   final BuildingType type;
-  final BuildingSquares squares;
+  final Shape squares;
 
   const Building({
     required this.id,
@@ -74,7 +74,7 @@ class Building {
     int? id,
     int? idTeam,
     BuildingType? type,
-    BuildingSquares? squares,
+    Shape? squares,
   }) {
     return Building(
       id: id ?? this.id,
@@ -129,7 +129,7 @@ enum BuildingType {
 class BuildingProperty {
   final String name;
   final BuildingCost cost;
-  final BuildingSquares shape;
+  final Shape shape;
   const BuildingProperty(this.name, this.cost, this.shape);
 }
 
@@ -138,66 +138,66 @@ const buildingProperties = <BuildingProperty>[
   BuildingProperty(
       "Marché", BuildingCost(3, 0, 0), [Coord(0, 0), Coord(1, 0), Coord(2, 0)]),
   BuildingProperty("Forum", BuildingCost(3, 2, 2),
-      [Coord(0, 0), Coord(1, 0), Coord(1, 1), Coord(2, 1)]),
+      [Coord(0, 1), Coord(1, 1), Coord(1, 0), Coord(2, 0)]),
   BuildingProperty("Chambre de commerce", BuildingCost(1, 3, 4),
-      [Coord(2, 0), Coord(2, 1), Coord(1, 1), Coord(0, 1), Coord(0, 2)]),
+      [Coord(2, 2), Coord(2, 1), Coord(1, 1), Coord(0, 1), Coord(0, 0)]),
   BuildingProperty("Obélisque", BuildingCost(0, 1, 1),
-      [Coord(0, 1), Coord(1, 0), Coord(0, 0)]),
+      [Coord(0, 0), Coord(1, 1), Coord(0, 1)]),
   BuildingProperty(
-      "Statue", BuildingCost(1, 1, 1), [Coord(0, 1), Coord(1, 0), Coord(1, 1)]),
+      "Statue", BuildingCost(1, 1, 1), [Coord(0, 0), Coord(1, 1), Coord(1, 0)]),
   BuildingProperty("Jardins", BuildingCost(5, 1, 1), [
-    Coord(0, 1),
-    Coord(1, 0),
-    Coord(1, 1),
     Coord(0, 0),
-    Coord(2, 1),
-    Coord(2, 0)
+    Coord(1, 1),
+    Coord(1, 0),
+    Coord(0, 1),
+    Coord(2, 0),
+    Coord(2, 1)
   ]),
   BuildingProperty("Théâtre", BuildingCost(3, 0, 4), [
     Coord(0, 1),
-    Coord(0, 0),
-    Coord(2, 1),
     Coord(0, 2),
-    Coord(1, 2),
-    Coord(2, 2)
+    Coord(2, 1),
+    Coord(0, 0),
+    Coord(1, 0),
+    Coord(2, 0)
   ]),
   BuildingProperty("Panthéon", BuildingCost(0, 0, 1),
-      [Coord(0, 1), Coord(0, 0), Coord(1, 1)]),
+      [Coord(0, 0), Coord(0, 1), Coord(1, 0)]),
   BuildingProperty("Sénat", BuildingCost(3, 2, 2),
-      [Coord(0, 1), Coord(0, 0), Coord(1, 0), Coord(2, 0)]),
+      [Coord(0, 0), Coord(0, 1), Coord(1, 1), Coord(2, 1)]),
   BuildingProperty("Hôtel de ville", BuildingCost(5, 4, 4),
-      [Coord(0, 1), Coord(0, 0), Coord(1, 0), Coord(2, 0), Coord(2, 1)]),
+      [Coord(0, 0), Coord(0, 1), Coord(1, 1), Coord(2, 1), Coord(2, 0)]),
   BuildingProperty("Officine", BuildingCost(2, 1, 0),
-      [Coord(0, 0), Coord(1, 0), Coord(1, 1)]),
+      [Coord(0, 1), Coord(1, 1), Coord(1, 0)]),
   BuildingProperty("Laboratoire", BuildingCost(4, 1, 1),
-      [Coord(0, 0), Coord(1, 0), Coord(0, 1)]),
+      [Coord(0, 1), Coord(1, 1), Coord(0, 0)]),
   BuildingProperty("Observatoire", BuildingCost(4, 2, 1), [
-    Coord(0, 0),
-    Coord(1, 0),
-    Coord(2, 0),
-    Coord(3, 0),
-    Coord(4, 0),
-    Coord(4, 1)
-  ]),
-  BuildingProperty("Académie", BuildingCost(1, 2, 3), [
-    Coord(1, 0),
-    Coord(3, 0),
     Coord(0, 1),
     Coord(1, 1),
     Coord(2, 1),
-    Coord(3, 1)
+    Coord(3, 1),
+    Coord(4, 1),
+    Coord(4, 0)
+  ]),
+  BuildingProperty("Académie", BuildingCost(1, 2, 3), [
+    Coord(1, 1),
+    Coord(3, 1),
+    Coord(0, 0),
+    Coord(1, 0),
+    Coord(2, 0),
+    Coord(3, 0)
   ]),
   BuildingProperty(
       "Bassin argileux", BuildingCost(7, 2, 2), [Coord(1, 0), Coord(0, 0)]),
   BuildingProperty("Poterie", BuildingCost(4, 1, 1),
-      [Coord(1, 0), Coord(0, 0), Coord(1, 1), Coord(2, 0)]),
+      [Coord(1, 1), Coord(0, 1), Coord(1, 0), Coord(2, 1)]),
   BuildingProperty("Atelier", BuildingCost(8, 4, 3), [
-    Coord(1, 0),
-    Coord(0, 0),
     Coord(1, 1),
-    Coord(2, 0),
+    Coord(0, 1),
+    Coord(1, 0),
     Coord(2, 1),
-    Coord(3, 0)
+    Coord(2, 0),
+    Coord(3, 1)
   ]),
   BuildingProperty("Ecole des arts", BuildingCost(2, 1, 3),
       [Coord(1, 0), Coord(0, 0), Coord(2, 0)]),
@@ -206,22 +206,22 @@ const buildingProperties = <BuildingProperty>[
   BuildingProperty("Petite tour de garde", BuildingCost(3, 1, 3),
       [Coord(1, 0), Coord(0, 0), Coord(2, 0)]),
   BuildingProperty("Grande tour de garde", BuildingCost(5, 2, 0),
-      [Coord(1, 0), Coord(0, 0), Coord(2, 0), Coord(1, 1), Coord(2, 1)]),
+      [Coord(1, 1), Coord(0, 1), Coord(2, 1), Coord(1, 0), Coord(2, 0)]),
   BuildingProperty("Forteresse", BuildingCost(3, 2, 6), [
-    Coord(1, 0),
-    Coord(0, 0),
-    Coord(2, 0),
-    Coord(2, 1),
+    Coord(1, 1),
     Coord(0, 1),
-    Coord(3, 1),
-    Coord(3, 0)
+    Coord(2, 1),
+    Coord(2, 0),
+    Coord(0, 0),
+    Coord(3, 0),
+    Coord(3, 1)
   ]),
   BuildingProperty("Armurerie", BuildingCost(3, 2, 2),
-      [Coord(1, 0), Coord(0, 0), Coord(0, 1)]),
+      [Coord(1, 1), Coord(0, 1), Coord(0, 0)]),
   BuildingProperty("Ecurie", BuildingCost(8, 0, 0),
-      [Coord(1, 0), Coord(0, 0), Coord(0, 1), Coord(1, 1)]),
+      [Coord(1, 1), Coord(0, 1), Coord(0, 0), Coord(1, 0)]),
   BuildingProperty("Camp d'entrainement", BuildingCost(5, 4, 4),
-      [Coord(1, 0), Coord(0, 0), Coord(0, 1), Coord(1, 1), Coord(2, 0)]),
+      [Coord(1, 1), Coord(0, 1), Coord(0, 0), Coord(1, 0), Coord(2, 1)]),
 ];
 
 class BuildingCost {

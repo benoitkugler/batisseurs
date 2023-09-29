@@ -1,4 +1,5 @@
 import 'package:batisseurs/grid.dart';
+import 'package:batisseurs/logic/grid.dart';
 import 'package:batisseurs/logic/models.dart';
 import 'package:batisseurs/logic/sql.dart';
 import 'package:flutter/material.dart';
@@ -258,12 +259,37 @@ class __TeamDetailsState extends State<_TeamDetails> {
                     team.team.stone, _addStone),
               ],
             ),
-            ElevatedButton(
-                onPressed: _showBuildings,
-                child: const Text("Construire un bâtiment")),
-            Grid(widget.game.gridSize, team.buildings, toPlace),
+            toPlace == null
+                ? ElevatedButton(
+                    onPressed: _showBuildings,
+                    child: const Text("Construire un bâtiment"))
+                : ElevatedButton(
+                    onPressed: () => setState(() {
+                          toPlace = null;
+                        }),
+                    child: const Text("Annuler")),
+            Grid(widget.game.gridSize, team.buildings, toPlace, _addBuilding),
           ]),
     );
+  }
+
+  _addBuilding(Shape shape) async {
+    final b = await widget.db.addBuilding(
+        Building(id: 0, idTeam: team.team.id, type: toPlace!, squares: shape));
+    // pay the price
+    final cost = buildingProperties[toPlace!.index].cost;
+    final t = team.team;
+    final newT = t.copyWith(
+        wood: t.wood - cost.wood,
+        mud: t.mud - cost.mud,
+        stone: t.stone - cost.stone);
+    await widget.db.updateTeam(newT);
+
+    setState(() {
+      team.buildings.add(b);
+      team = team.copyWith(team: newT);
+      toPlace = null;
+    });
   }
 
   _showBuildings() async {
@@ -318,22 +344,6 @@ class __TeamDetailsState extends State<_TeamDetails> {
     await widget.db.updateTeam(t);
     setState(() {
       team = team.copyWith(team: t);
-
-      team.buildings.add(Building(
-          id: 0,
-          idTeam: 0,
-          type: BuildingType.academie,
-          squares: buildingProperties[0].shape));
-      team.buildings.add(Building(
-          id: 1,
-          idTeam: 0,
-          type: BuildingType.ecoleArchitecture,
-          squares: buildingProperties[2].shape));
-      team.buildings.add(Building(
-          id: 2,
-          idTeam: 0,
-          type: BuildingType.ecurie,
-          squares: buildingProperties[5].shape));
     });
   }
 

@@ -1,4 +1,5 @@
 import 'package:batisseurs/game.dart';
+import 'package:batisseurs/grid.dart';
 import 'package:batisseurs/logic/grid.dart';
 import 'package:batisseurs/logic/models.dart';
 import 'package:batisseurs/logic/sql.dart';
@@ -25,6 +26,18 @@ class MyApp extends StatelessWidget {
         useMaterial3: true,
       ),
       home: const _Loader(),
+      // home: Scaffold(
+      //     body: Center(
+      //         child: Grid(
+      //             10,
+      //             [
+      //               Building(
+      //                   id: 0,
+      //                   idTeam: 0,
+      //                   type: BuildingType.armurerie,
+      //                   squares: buildingProperties[4].shape)
+      //             ],
+      //             BuildingType.academie))),
     );
   }
 }
@@ -96,8 +109,6 @@ class _Home extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar:
-          game != null ? AppBar(title: const Text("Partie en cours")) : null,
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,

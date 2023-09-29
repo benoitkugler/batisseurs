@@ -37,19 +37,19 @@ const _createSQLStatements = [
 
 extension Co on Coord {
   String toSQL() => "$x,$y";
-  static fromSQL(String sql) {
+  static Coord fromSQL(String sql) {
     final coords =
         sql.split(",").map((e) => int.parse(e)).toList(growable: false);
     return Coord(coords[0], coords[1]);
   }
 }
 
-extension Bs on BuildingSquares {
+extension Bs on Shape {
   String toSQL() {
     return map((e) => e.toSQL()).join(";");
   }
 
-  static fromSQL(String sql) {
+  static Shape fromSQL(String sql) {
     return sql.split(";").map((e) => Co.fromSQL(e)).toList();
   }
 }
