@@ -1,12 +1,20 @@
+import 'dart:io';
+
 import 'package:batisseurs/game.dart';
-import 'package:batisseurs/grid.dart';
 import 'package:batisseurs/logic/grid.dart';
 import 'package:batisseurs/logic/models.dart';
 import 'package:batisseurs/logic/sql.dart';
 import 'package:flutter/material.dart';
+import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:transparent_image/transparent_image.dart';
 
 void main() {
+  if (Platform.isLinux) {
+    // Initialize FFI
+    sqfliteFfiInit();
+    // Change the default factory
+    databaseFactory = databaseFactoryFfi;
+  }
   runApp(const MyApp());
 }
 
