@@ -1,3 +1,4 @@
+import 'package:batisseurs/logic/grid.dart';
 import 'package:batisseurs/logic/models.dart';
 import 'package:batisseurs/logic/sql.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -14,16 +15,29 @@ Future main() async {
   test('SQL API', () async {
     final db = await DBApi.open(dbPath: inMemoryDatabasePath);
 
-    expect((await db.selectTeams()).length, 0);
+    expect(await db.selectGame(), null);
 
-    final team = await db.createTeam("My team");
-    expect(team.id, 1);
+    final game = await db.createGame(10, ["1", "2", "3"]);
+
+    expect((await db.selectTeams(game.id)).length, 3);
+
+    final team = await db.createTeam(game.id, "My team");
     expect(team.name, "My team");
+    expect((await db.selectTeams(game.id)).length, 4);
 
-    db.updateTeam(team.copyWith(
-        mud: 3, buildings: const Buildings([1, 2, 3, 4, 0, 0, 0])));
+    await db.updateTeam(team.copyWith(mud: 3));
 
-    expect((await db.selectTeams()).length, 1);
+    final build = await db.addBuilding(Building(
+        id: 0,
+        idTeam: team.id,
+        type: BuildingType.academie,
+        squares: const [Coord(1, -1), Coord(2, 2)]));
+
+    await db.deleteBuilding(build.id);
+
+    await db.removeGame(game.id);
+
+    expect(await db.selectGame(), null);
 
     await db.close();
   });
