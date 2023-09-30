@@ -137,7 +137,8 @@ class _GameScreenState extends State<GameScreen> {
         actions: [
           TextButton(onPressed: _showRankings, child: const Text("Classement")),
           IconButton(
-              onPressed: _closeGame, icon: const Icon(Icons.delete_forever)),
+              onPressed: _closeGame,
+              icon: const Icon(Icons.delete_forever, color: Colors.red)),
         ],
       ),
       body: ListView(

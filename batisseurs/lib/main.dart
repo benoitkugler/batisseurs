@@ -27,11 +27,11 @@ void main() {
     // Change the default factory
     databaseFactory = databaseFactoryFfi;
   }
-  runApp(const MyApp());
+  runApp(const _App());
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class _App extends StatelessWidget {
+  const _App({super.key});
 
   // This widget is the root of your application.
   @override
@@ -39,7 +39,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       supportedLocales: locales,
       localizationsDelegates: localizations,
-      title: 'Flutter Demo',
+      title: 'Les bâtisseurs',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(
             seedColor: Colors.yellow.shade400, secondary: Colors.blue.shade100),
@@ -48,18 +48,6 @@ class MyApp extends StatelessWidget {
         useMaterial3: true,
       ),
       home: const _Loader(),
-      // home: Scaffold(
-      //     body: Center(
-      //         child: Grid(
-      //             10,
-      //             [
-      //               Building(
-      //                   id: 0,
-      //                   idTeam: 0,
-      //                   type: BuildingType.armurerie,
-      //                   squares: buildingProperties[4].shape)
-      //             ],
-      //             BuildingType.academie))),
     );
   }
 }
