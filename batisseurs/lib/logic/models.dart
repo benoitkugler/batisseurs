@@ -101,7 +101,7 @@ class TeamExt {
     final out = Stats();
     for (var building in buildings) {
       final i = building.type.index;
-      if (i <= 0 && i < victoryPoints.length) {
+      if (0 <= i && i < victoryPoints.length) {
         out.victoryPoints += victoryPoints[i];
       } else {
         switch (building.type) {
@@ -125,7 +125,7 @@ class TeamExt {
           case BuildingType.ecoleArchitecture:
             out.contremaitres += 2;
           default:
-            break;
+            continue;
         }
       }
     }
@@ -146,6 +146,11 @@ class Stats {
       this.defense = 0,
       this.bonusCup = 0,
       this.contremaitres = 0});
+
+  @override
+  String toString() {
+    return "Stats($victoryPoints,$attack,$defense,$bonusCup,$contremaitres)";
+  }
 }
 
 /// each victory add this and remove to the other team
