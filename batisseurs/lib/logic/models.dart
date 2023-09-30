@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:batisseurs/logic/grid.dart';
 
 class Game {
@@ -93,6 +95,82 @@ class TeamExt {
   TeamExt copyWith({Team? team, List<Building>? buildings}) {
     return TeamExt(team ?? this.team, buildings ?? this.buildings);
   }
+
+  /// [stats] sum the bonus of each building
+  Stats stats() {
+    final out = Stats();
+    for (var building in buildings) {
+      final i = building.type.index;
+      if (i <= 0 && i < victoryPoints.length) {
+        out.victoryPoints += victoryPoints[i];
+      } else {
+        switch (building.type) {
+          case BuildingType.bassinArgileux:
+          case BuildingType.poterie:
+            out.bonusCup += 1;
+          case BuildingType.atelier:
+            out.bonusCup += 2;
+          case BuildingType.petiteTourGarde:
+          case BuildingType.grandeTourGarde:
+            out.defense += 1;
+          case BuildingType.forteresse:
+            out.defense += 2;
+          case BuildingType.armurerie:
+          case BuildingType.ecurie:
+            out.attack += 1;
+          case BuildingType.campEntrainement:
+            out.attack += 2;
+          case BuildingType.ecoleArts:
+            out.contremaitres += 1;
+          case BuildingType.ecoleArchitecture:
+            out.contremaitres += 2;
+          default:
+            break;
+        }
+      }
+    }
+    return out;
+  }
+}
+
+class Stats {
+  int victoryPoints;
+  int attack;
+  int defense;
+  int bonusCup;
+  int contremaitres;
+
+  Stats(
+      {this.victoryPoints = 0,
+      this.attack = 0,
+      this.defense = 0,
+      this.bonusCup = 0,
+      this.contremaitres = 0});
+}
+
+/// each victory add this and remove to the other team
+const militaryAttackPoint = 3;
+
+/// [scores] compute the end game score for each team,
+/// taking into accout military success and victory points.
+List<int> scores(List<TeamExt> teams) {
+  final stats = teams.map((e) => e.stats()).toList();
+  // start with the victory points
+  final out = stats.map((e) => e.victoryPoints).toList();
+  // simulate military phase
+  for (var i = 0; i < teams.length; i++) {
+    for (var j = i + 1; j < teams.length; j++) {
+      final teami = stats[i];
+      final teamj = stats[j];
+      // i attack
+      final ai = max(teami.attack - teamj.defense, 0);
+      // j attack
+      final aj = max(teamj.attack - teami.defense, 0);
+      out[i] += militaryAttackPoint * (ai - aj);
+      out[j] += militaryAttackPoint * (aj - ai);
+    }
+  }
+  return out;
 }
 
 enum BuildingType {
@@ -111,16 +189,18 @@ enum BuildingType {
   laboratoire,
   observatoire,
   academie,
-  // other gain
+  // bonus cup
   bassinArgileux,
   poterie,
   atelier,
+  // contremaitres
   ecoleArts,
   ecoleArchitecture,
-  // military
+  // military defense
   petiteTourGarde,
   grandeTourGarde,
   forteresse,
+  // military attack
   armurerie,
   ecurie,
   campEntrainement
@@ -229,6 +309,17 @@ class BuildingCost {
   final int mud;
   final int stone;
   const BuildingCost(this.wood, this.mud, this.stone);
+
+  BuildingCost copyWith({
+    int? wood,
+    int? mud,
+    int? stone,
+  }) =>
+      BuildingCost(
+        wood ?? this.wood,
+        mud ?? this.mud,
+        stone ?? this.stone,
+      );
 
   bool isSatisfied(int wood, int mud, int stone) {
     return this.wood <= wood && this.mud <= mud && this.stone <= stone;

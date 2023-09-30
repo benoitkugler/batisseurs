@@ -132,13 +132,26 @@ class _GameScreenState extends State<GameScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Partie en cours")),
+      appBar: AppBar(
+        title: const Text("Partie en cours"),
+        actions: [
+          TextButton(onPressed: _showRankings, child: const Text("Classement"))
+        ],
+      ),
       body: ListView(
           children: teams
-              .map((e) =>
-                  InkWell(onTap: () => _showTeam(e), child: _TeamCard(e)))
+              .map((e) => InkWell(
+                  borderRadius: const BorderRadius.all(Radius.circular(12)),
+                  onTap: () => _showTeam(e),
+                  child: _TeamCard(e)))
               .toList()),
     );
+  }
+
+  _showRankings() async {
+    final scs = scores(teams);
+    showDialog(
+        context: context, builder: (context) => _RankingsDialog(teams, scs));
   }
 
   _showTeam(TeamExt team) async {
@@ -156,6 +169,10 @@ class _TeamCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final nbB = team.buildings.length;
+    final stats = team.stats();
+    final hasZeroStats =
+        stats.bonusCup + stats.contremaitres + stats.attack + stats.defense ==
+            0;
     return Card(
         child: Padding(
       padding: const EdgeInsets.all(8.0),
@@ -168,11 +185,11 @@ class _TeamCard extends StatelessWidget {
           ),
           const SizedBox(height: 10),
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              _ResourceIcon(Image.asset("assets/wood.png"), team.team.wood),
-              _ResourceIcon(Image.asset("assets/mud.png"), team.team.mud),
-              _ResourceIcon(Image.asset("assets/stone.png"), team.team.stone),
+              ResourceIcon(Image.asset("assets/wood.png"), team.team.wood),
+              ResourceIcon(Image.asset("assets/mud.png"), team.team.mud),
+              ResourceIcon(Image.asset("assets/stone.png"), team.team.stone),
               Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: Text(
@@ -184,36 +201,51 @@ class _TeamCard extends StatelessWidget {
                     style: Theme.of(context).textTheme.bodyLarge),
               )
             ],
-          )
+          ),
+          if (!hasZeroStats)
+            Card(
+              elevation: 2,
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    Expanded(
+                        child: _ReapeatIcon(
+                            Image.asset("assets/cup.png"), stats.bonusCup)),
+                    Expanded(
+                        child: _ReapeatIcon(
+                            Image.asset("assets/contremaitre.png"),
+                            stats.contremaitres)),
+                    Expanded(
+                        child: _ReapeatIcon(
+                            Image.asset("assets/swords.png"), stats.attack)),
+                    Expanded(
+                        child: _ReapeatIcon(
+                            Image.asset("assets/shield.png"), stats.defense)),
+                  ],
+                ),
+              ),
+            )
         ],
       ),
     ));
   }
 }
 
-class _ResourceIcon extends StatelessWidget {
-  final Image image;
-  final int amount;
-  final double size;
-  const _ResourceIcon(this.image, this.amount, {this.size = 40, super.key});
+class _ReapeatIcon extends StatelessWidget {
+  final Image icon;
+  final int nbRepeat;
+  const _ReapeatIcon(this.icon, this.nbRepeat, {super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      elevation: 2,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8.0),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            SizedBox(width: size, height: size, child: image),
-            Text(
-              "$amount",
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-          ],
-        ),
-      ),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 4.0),
+      child: Wrap(
+          alignment: WrapAlignment.center,
+          children: List.filled(
+              nbRepeat, SizedBox(width: 20, height: 20, child: icon))),
     );
   }
 }
@@ -232,8 +264,6 @@ class _TeamDetails extends StatefulWidget {
 class __TeamDetailsState extends State<_TeamDetails> {
   late TeamExt team;
 
-  BuildingType? toPlace; // begin purchased
-
   @override
   void initState() {
     team = widget.team;
@@ -243,41 +273,71 @@ class __TeamDetailsState extends State<_TeamDetails> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(widget.team.team.name)),
-      body: Column(
-          // mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                _ResourceButton(
-                    Image.asset("assets/wood.png"), team.team.wood, _addWood),
-                _ResourceButton(
-                    Image.asset("assets/mud.png"), team.team.mud, _addMud),
-                _ResourceButton(Image.asset("assets/stone.png"),
-                    team.team.stone, _addStone),
-              ],
-            ),
-            toPlace == null
-                ? ElevatedButton(
-                    onPressed: _showBuildings,
-                    child: const Text("Construire un bâtiment"))
-                : ElevatedButton(
-                    onPressed: () => setState(() {
-                          toPlace = null;
-                        }),
-                    child: const Text("Annuler")),
-            Grid(widget.game.gridSize, team.buildings, toPlace, _addBuilding),
-          ]),
+      appBar: AppBar(
+        title: Text(widget.team.team.name),
+        actions: [
+          TextButton(onPressed: _showTrade, child: const Text("Commercer"))
+        ],
+      ),
+      body:
+          Column(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+        Card(
+          color: Theme.of(context).scaffoldBackgroundColor,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              _ResourceButton(
+                  Image.asset("assets/wood.png"), team.team.wood, _addWood),
+              _ResourceButton(
+                  Image.asset("assets/mud.png"), team.team.mud, _addMud),
+              _ResourceButton(
+                  Image.asset("assets/stone.png"), team.team.stone, _addStone),
+            ],
+          ),
+        ),
+        const SizedBox(height: 10),
+        Expanded(child: Grid(team, widget.game.gridSize, _addBuilding)),
+      ]),
     );
   }
 
-  _addBuilding(Shape shape) async {
+  _showTrade() async {
+    final teams = await widget.db.selectTeams(widget.game.id);
+    if (!mounted) return;
+    await showDialog(
+        context: context,
+        builder: (context) => _TradeDialog(team.team, teams, _doTrade));
+  }
+
+  _doTrade(Team otherTeam, BuildingCost toGive, BuildingCost toReceive) async {
+    Navigator.of(context).pop();
+    final t = team.team;
+    final newT = t.copyWith(
+        wood: t.wood - toGive.wood + toReceive.wood,
+        mud: t.mud - toGive.mud + toReceive.mud,
+        stone: t.stone - toGive.stone + toReceive.stone);
+    final newOtherT = otherTeam.copyWith(
+        wood: otherTeam.wood + toGive.wood - toReceive.wood,
+        mud: otherTeam.mud + toGive.mud - toReceive.mud,
+        stone: otherTeam.stone + toGive.stone - toReceive.stone);
+    await widget.db.updateTeam(newT);
+    await widget.db.updateTeam(newOtherT);
+    if (!mounted) return;
+    setState(() {
+      team = team.copyWith(team: newT);
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+      content: Text("Echange effectué."),
+      backgroundColor: Colors.lightGreen,
+    ));
+  }
+
+  _addBuilding(BuildingType toPlace, Shape shape) async {
     final b = await widget.db.addBuilding(
-        Building(id: 0, idTeam: team.team.id, type: toPlace!, squares: shape));
+        Building(id: 0, idTeam: team.team.id, type: toPlace, squares: shape));
     // pay the price
-    final cost = buildingProperties[toPlace!.index].cost;
+    final cost = buildingProperties[toPlace.index].cost;
     final t = team.team;
     final newT = t.copyWith(
         wood: t.wood - cost.wood,
@@ -288,54 +348,6 @@ class __TeamDetailsState extends State<_TeamDetails> {
     setState(() {
       team.buildings.add(b);
       team = team.copyWith(team: newT);
-      toPlace = null;
-    });
-  }
-
-  _showBuildings() async {
-    final t = team.team;
-    final toBuild = await showDialog<BuildingType>(
-        context: context,
-        builder: (context) => AlertDialog(
-              contentPadding:
-                  const EdgeInsets.symmetric(horizontal: 4, vertical: 20),
-              title: const Text("Que construire ?"),
-              content: ListView(
-                children: BuildingType.values.map((e) {
-                  final prop = buildingProperties[e.index];
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 2),
-                    child: ListTile(
-                      tileColor: e.color().withOpacity(0.3),
-                      shape: const RoundedRectangleBorder(
-                          borderRadius: BorderRadius.all(Radius.circular(8))),
-                      onTap: () => Navigator.of(context).pop(e),
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 2),
-                      title: Text(prop.name),
-                      enabled: prop.cost.isSatisfied(t.wood, t.mud, t.stone),
-                      trailing: Row(mainAxisSize: MainAxisSize.min, children: [
-                        _ResourceIcon(
-                          Image.asset("assets/wood.png"),
-                          prop.cost.wood,
-                          size: 20,
-                        ),
-                        _ResourceIcon(
-                            Image.asset("assets/mud.png"), prop.cost.mud,
-                            size: 20),
-                        _ResourceIcon(
-                            Image.asset("assets/stone.png"), prop.cost.stone,
-                            size: 20),
-                      ]),
-                    ),
-                  );
-                }).toList(),
-              ),
-            ));
-
-    if (toBuild == null) return;
-
-    setState(() {
-      toPlace = toBuild;
     });
   }
 
@@ -391,5 +403,214 @@ class _ResourceButton extends StatelessWidget {
         ],
       ),
     );
+  }
+}
+
+class _TradeDialog extends StatefulWidget {
+  final Team team;
+  final List<TeamExt> allTeams;
+
+  final void Function(
+      Team otherTeam, BuildingCost toGive, BuildingCost toReceive) onTrade;
+
+  const _TradeDialog(this.team, this.allTeams, this.onTrade, {super.key});
+
+  @override
+  State<_TradeDialog> createState() => __TradeDialogState();
+}
+
+class __TradeDialogState extends State<_TradeDialog> {
+  int? otherTeamId;
+  BuildingCost toGive = const BuildingCost(0, 0, 0);
+  BuildingCost toReceive = const BuildingCost(0, 0, 0);
+
+  Team? get otherTeam => widget.allTeams
+      .firstWhere((element) => element.team.id == otherTeamId)
+      .team;
+
+  bool get isTradeValid {
+    if (otherTeamId == null) return false;
+    final thisTeam = widget.team;
+    return toGive.isSatisfied(thisTeam.wood, thisTeam.mud, thisTeam.stone) &&
+        toReceive.isSatisfied(
+            otherTeam!.wood, otherTeam!.mud, otherTeam!.stone);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text("Echanger des ressources"),
+      content: Column(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          DropdownMenu<int>(
+            onSelected: (value) => setState(() {
+              otherTeamId = value;
+            }),
+            dropdownMenuEntries: widget.allTeams
+                .where((t) => t.team.id != widget.team.id)
+                .map((e) =>
+                    DropdownMenuEntry(value: e.team.id, label: e.team.name))
+                .toList(),
+            label: const Text("Avec l'équipe"),
+          ),
+          Text(
+            "Donner",
+            style: Theme.of(context).textTheme.titleLarge,
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              _ResourceField(
+                  Image.asset("assets/wood.png"),
+                  _IntegerInput(
+                      toGive.wood,
+                      (v) => setState(() {
+                            toGive = toGive.copyWith(wood: v);
+                          }))),
+              _ResourceField(
+                  Image.asset("assets/mud.png"),
+                  _IntegerInput(
+                      toGive.mud,
+                      (v) => setState(() {
+                            toGive = toGive.copyWith(mud: v);
+                          }))),
+              _ResourceField(
+                  Image.asset("assets/stone.png"),
+                  _IntegerInput(
+                      toGive.stone,
+                      (v) => setState(() {
+                            toGive = toGive.copyWith(stone: v);
+                          }))),
+            ],
+          ),
+          Text(
+            "Recevoir",
+            style: Theme.of(context).textTheme.titleLarge,
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              _ResourceField(
+                  Image.asset("assets/wood.png"),
+                  _IntegerInput(
+                      toReceive.wood,
+                      (v) => setState(() {
+                            toReceive = toReceive.copyWith(wood: v);
+                          }))),
+              _ResourceField(
+                  Image.asset("assets/mud.png"),
+                  _IntegerInput(
+                      toReceive.mud,
+                      (v) => setState(() {
+                            toReceive = toReceive.copyWith(mud: v);
+                          }))),
+              _ResourceField(
+                  Image.asset("assets/stone.png"),
+                  _IntegerInput(
+                      toReceive.stone,
+                      (v) => setState(() {
+                            toReceive = toReceive.copyWith(stone: v);
+                          }))),
+            ],
+          ),
+          ElevatedButton(
+              onPressed: isTradeValid
+                  ? () => widget.onTrade(otherTeam!, toGive, toReceive)
+                  : null,
+              child: const Text("Procéder à l'échange"))
+        ],
+      ),
+    );
+  }
+}
+
+class _IntegerInput extends StatelessWidget {
+  final int value;
+  final void Function(int) onChange;
+  const _IntegerInput(this.value, this.onChange, {super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Text("$value", style: Theme.of(context).textTheme.titleMedium),
+        ),
+        Row(
+          children: [
+            IconButton(
+                padding: EdgeInsets.zero,
+                iconSize: 18,
+                onPressed: value > 0 ? () => onChange(value - 1) : null,
+                icon: const Icon(Icons.remove)),
+            IconButton(
+                padding: EdgeInsets.zero,
+                iconSize: 18,
+                onPressed: () => onChange(value + 1),
+                icon: const Icon(Icons.add)),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+class _ResourceField extends StatelessWidget {
+  final Image image;
+  final Widget field;
+
+  const _ResourceField(this.image, this.field, {super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const SizedBox(height: 10),
+          SizedBox(width: 40, height: 40, child: image),
+          field
+        ],
+      ),
+    );
+  }
+}
+
+class _RankingsDialog extends StatelessWidget {
+  final List<TeamExt> teams;
+  final List<int> scores;
+
+  const _RankingsDialog(this.teams, this.scores, {super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final sorted = List.generate(
+        teams.length, (index) => MapEntry(teams[index], scores[index]));
+    sorted.sort((a, b) => -a.value + b.value);
+    return AlertDialog(
+        title: const Text("Classement"),
+        content: SizedBox(
+          width: double.maxFinite,
+          child: ListView(
+            children: [
+              ListTile(
+                trailing: SizedBox(
+                    width: 30,
+                    height: 30,
+                    child: Image.asset("assets/victory.png")),
+              ),
+              ...sorted.map((e) => ListTile(
+                    title: Text(e.key.team.name),
+                    trailing: Text(
+                      "${e.value}",
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                  ))
+            ],
+          ),
+        ));
   }
 }

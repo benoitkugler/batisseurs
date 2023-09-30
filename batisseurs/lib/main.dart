@@ -7,6 +7,18 @@ import 'package:batisseurs/logic/sql.dart';
 import 'package:flutter/material.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:transparent_image/transparent_image.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+
+const localizations = [
+  GlobalMaterialLocalizations.delegate,
+  GlobalWidgetsLocalizations.delegate,
+  GlobalCupertinoLocalizations.delegate,
+];
+
+const locales = [
+  Locale('fr', ''), // French, no country code
+  Locale('en', ''), // English, no country code
+];
 
 void main() {
   if (Platform.isLinux) {
@@ -25,6 +37,8 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      supportedLocales: locales,
+      localizationsDelegates: localizations,
       title: 'Flutter Demo',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(
@@ -117,31 +131,36 @@ class _Home extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: [
-            Text(
-              "Les bâtisseurs",
-              style: Theme.of(context).textTheme.displaySmall,
-            ),
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: FadeInImage(
-                  placeholder: MemoryImage(kTransparentImage),
-                  image: const AssetImage("assets/city.png")),
-            ),
-            ElevatedButton(
-              onPressed: onLaunch,
-              style: ElevatedButton.styleFrom(
-                elevation: 8,
-                backgroundColor: Colors.lightGreenAccent.shade200,
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              Text(
+                "Les bâtisseurs",
+                style: Theme.of(context).textTheme.displaySmall,
               ),
-              child: game == null
-                  ? const Text("Créer une partie")
-                  : const Text("Continuer la partie"),
-            ),
-          ],
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: FadeInImage(
+                      placeholder: MemoryImage(kTransparentImage),
+                      image: const AssetImage("assets/city.png")),
+                ),
+              ),
+              ElevatedButton(
+                onPressed: onLaunch,
+                style: ElevatedButton.styleFrom(
+                  elevation: 8,
+                  backgroundColor: Colors.lightGreenAccent.shade200,
+                ),
+                child: game == null
+                    ? const Text("Créer une partie")
+                    : const Text("Continuer la partie"),
+              ),
+            ],
+          ),
         ),
       ),
     );

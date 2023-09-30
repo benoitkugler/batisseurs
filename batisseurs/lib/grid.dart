@@ -14,46 +14,55 @@ extension Bt on BuildingType {
   }
 }
 
+class ShapePreview extends StatelessWidget {
+  final Shape shape;
+  const ShapePreview(this.shape, {super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final minC = shape.minC;
+    final innerShape = shape.translate(-minC.x, -minC.y);
+    return _FitBuilding(20, innerShape, true, false, Colors.yellow);
+  }
+}
+
 class Grid extends StatefulWidget {
+  final TeamExt team;
+
   final int gridSize;
 
-  final List<Building> buildings;
+  final void Function(BuildingType, Shape) onBuild;
 
-  final BuildingType? toPlace;
-
-  final void Function(Shape) onBuild;
-
-  const Grid(this.gridSize, this.buildings, this.toPlace, this.onBuild,
-      {super.key});
+  const Grid(this.team, this.gridSize, this.onBuild, {super.key});
 
   @override
   State<Grid> createState() => _GridState();
 }
 
 class _GridState extends State<Grid> {
-  Building? selected;
+  BuildingType? toPlace;
   Shape? shapeToPlace;
+
+  Building? selected;
   Color gridColor = Colors.grey;
 
   List<List<bool>> crible = [];
 
   @override
   void initState() {
-    _initToPlace();
     _buildCrible();
     super.initState();
   }
 
   @override
   void didUpdateWidget(covariant Grid oldWidget) {
-    _initToPlace();
     _buildCrible();
     super.didUpdateWidget(oldWidget);
   }
 
   _buildCrible() {
     final crible = matrix(widget.gridSize, false);
-    for (var shape in widget.buildings) {
+    for (var shape in widget.team.buildings) {
       for (var coord in shape.squares) {
         crible[coord.x][coord.y] = true;
       }
@@ -61,62 +70,113 @@ class _GridState extends State<Grid> {
     this.crible = crible;
   }
 
-  _initToPlace() {
-    if (widget.toPlace == null) {
-      shapeToPlace = null;
-    } else {
-      shapeToPlace = buildingProperties[widget.toPlace!.index]
-          .shape
-          .centerOnGrid(widget.gridSize);
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.all(8.0),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          if (shapeToPlace != null)
-            Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-              const Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text("Choisis l'emplacement"),
-                  Text(
-                    "Tu peux cliquer pour faire tourner le bâtiment",
-                    style: TextStyle(fontStyle: FontStyle.italic, fontSize: 10),
-                  )
-                ],
-              ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              if (toPlace != null) ...[
+                const Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text("Choisis l'emplacement"),
+                    Text(
+                      "Tu peux cliquer pour faire tourner le bâtiment",
+                      style:
+                          TextStyle(fontStyle: FontStyle.italic, fontSize: 10),
+                    )
+                  ],
+                ),
+                const Spacer(),
+                IconButton(
+                    onPressed: () => setState(() {
+                          toPlace = null;
+                          shapeToPlace = null;
+                        }),
+                    icon: const Icon(Icons.clear))
+              ],
               ElevatedButton(
-                  onPressed: shapeToPlace!.mayFit(crible, widget.gridSize)
-                      ? () => widget.onBuild(shapeToPlace!)
-                      : null,
-                  child: const Text("Construire"))
-            ]),
-          LayoutBuilder(builder: (context, constraints) {
-            final gridWidth = constraints.biggest.shortestSide;
-            return Stack(children: [
-              _GridBackground(gridWidth, widget.gridSize, gridColor),
-              _Buildings(
-                  gridWidth,
-                  widget.gridSize,
-                  _merge(widget.buildings, widget.gridSize),
-                  widget.toPlace != null,
-                  selected,
-                  (b) => setState(() {
-                        selected = b;
-                      })),
-              if (shapeToPlace != null)
-                _ToPlaceBuilding(gridWidth, widget.gridSize, shapeToPlace!,
-                    _onMoveToPlace, _onDropToPlace, _onRotateToPlace)
-            ]);
-          }),
-          if (selected != null) _BuildingCard(selected!),
+                  onPressed: toPlace == null
+                      ? _showBuildings
+                      : _isBuildingValid()
+                          ? _onBuild
+                          : null,
+                  child:
+                      Text(toPlace == null ? "Construire un bâtiment" : "OK"))
+            ],
+          ),
+          const SizedBox(height: 10),
+          Expanded(
+            child: LayoutBuilder(builder: (context, constraints) {
+              final gridWidth = constraints.biggest.shortestSide;
+              return Stack(children: [
+                _GridBackground(gridWidth, widget.gridSize, gridColor),
+                _Buildings(
+                    gridWidth,
+                    widget.gridSize,
+                    _merge(widget.team.buildings, widget.gridSize),
+                    toPlace != null,
+                    selected,
+                    (b) => setState(() {
+                          selected = b;
+                        })),
+                if (shapeToPlace != null)
+                  _ToPlaceBuilding(gridWidth, widget.gridSize, shapeToPlace!,
+                      _onMoveToPlace, _onDropToPlace, _onRotateToPlace)
+              ]);
+            }),
+          ),
+          if (selected != null) _BuildingSummary(selected!),
         ],
       ),
     );
+  }
+
+  _showBuildings() async {
+    final t = widget.team.team;
+    final toBuild = await showDialog<BuildingType>(
+      context: context,
+      builder: (context) => AlertDialog(
+        contentPadding: const EdgeInsets.symmetric(horizontal: 4, vertical: 20),
+        title: const Text("Que construire ?"),
+        content: SizedBox(
+          width: double.maxFinite,
+          child: ListView.builder(
+              itemCount: BuildingType.values.length,
+              itemBuilder: (context, index) {
+                final e = BuildingType.values[index];
+                final prop = buildingProperties[e.index];
+                return _BuildingCard(
+                    e,
+                    prop,
+                    prop.cost.isSatisfied(t.wood, t.mud, t.stone),
+                    () => Navigator.of(context).pop(e));
+              }),
+        ),
+      ),
+    );
+
+    if (toBuild == null) return;
+
+    setState(() {
+      toPlace = toBuild;
+      // start with the shape in the center
+      shapeToPlace =
+          buildingProperties[toBuild.index].shape.centerOnGrid(widget.gridSize);
+    });
+  }
+
+  bool _isBuildingValid() => shapeToPlace!.mayFit(crible, widget.gridSize);
+
+  _onBuild() {
+    widget.onBuild(toPlace!, shapeToPlace!);
+    toPlace = null;
+    shapeToPlace = null;
   }
 
   _onMoveToPlace(Shape shape) {
@@ -219,13 +279,38 @@ class _Buildings extends StatelessWidget {
 class _FitBuilding extends StatelessWidget {
   final double cellSize;
   final Shape shape;
+  final bool border;
+  final bool shadow;
+  final Color color;
 
-  const _FitBuilding(this.cellSize, this.shape, {super.key});
+  const _FitBuilding(
+      this.cellSize, this.shape, this.border, this.shadow, this.color,
+      {super.key});
 
   @override
   Widget build(BuildContext context) {
     return Stack(children: [
       SizedBox(width: cellSize * shape.size(), height: cellSize * shape.size()),
+      if (shadow)
+        ...shape.map(
+          (e) => Positioned(
+            left: e.x * cellSize,
+            top: e.y * cellSize,
+            child: Container(
+              width: cellSize,
+              height: cellSize,
+              decoration: BoxDecoration(
+                  borderRadius: const BorderRadius.all(Radius.circular(4)),
+                  border: Border.all(
+                      color: color,
+                      width: 3,
+                      strokeAlign: BorderSide.strokeAlignCenter),
+                  boxShadow: [
+                    BoxShadow(color: color, blurRadius: 4, spreadRadius: 2),
+                  ]),
+            ),
+          ),
+        ),
       ...shape.map(
         (e) => Positioned(
           left: e.x * cellSize,
@@ -234,28 +319,8 @@ class _FitBuilding extends StatelessWidget {
             width: cellSize,
             height: cellSize,
             decoration: BoxDecoration(
-                borderRadius: const BorderRadius.all(Radius.circular(4)),
-                border: Border.all(
-                    color: Colors.blue,
-                    width: 3,
-                    strokeAlign: BorderSide.strokeAlignCenter),
-                boxShadow: const [
-                  BoxShadow(
-                      color: Colors.blueAccent, blurRadius: 5, spreadRadius: 1),
-                  BoxShadow(color: Colors.blue, blurRadius: 4, spreadRadius: 2),
-                ]),
-          ),
-        ),
-      ),
-      ...shape.map(
-        (e) => Positioned(
-          left: e.x * cellSize,
-          top: e.y * cellSize,
-          child: Container(
-            width: cellSize,
-            height: cellSize,
-            decoration: const BoxDecoration(
-              color: Colors.blue,
+              border: border ? Border.all() : null,
+              color: color,
             ),
           ),
         ),
@@ -309,8 +374,10 @@ class _ToPlaceBuilding extends StatelessWidget {
               onTap: onRotate,
               child: Draggable(
                   data: 1,
-                  feedback: _FitBuilding(cellSize, innerShape),
-                  child: _FitBuilding(cellSize, innerShape)),
+                  feedback: _FitBuilding(
+                      cellSize, innerShape, false, false, Colors.blue),
+                  child: _FitBuilding(
+                      cellSize, innerShape, false, true, Colors.blue)),
             ),
           )
         ],
@@ -331,10 +398,10 @@ _MergedBuildings _merge(List<Building> l, int gridSize) {
   return out;
 }
 
-class _BuildingCard extends StatelessWidget {
+class _BuildingSummary extends StatelessWidget {
   final Building building;
 
-  const _BuildingCard(this.building, {super.key});
+  const _BuildingSummary(this.building, {super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -344,6 +411,87 @@ class _BuildingCard extends StatelessWidget {
         padding: const EdgeInsets.all(8.0),
         child: Text(buildingProperties[building.type.index].name,
             style: Theme.of(context).textTheme.titleMedium),
+      ),
+    );
+  }
+}
+
+class _BuildingCard extends StatelessWidget {
+  final BuildingType type;
+  final BuildingProperty prop;
+  final bool enabled;
+  final void Function() onTap;
+
+  const _BuildingCard(this.type, this.prop, this.enabled, this.onTap,
+      {super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      borderRadius: const BorderRadius.all(Radius.circular(12)),
+      splashColor: type.color(),
+      hoverColor: type.color().withOpacity(0.5),
+      onTap: enabled ? onTap : null,
+      child: Card(
+        color: type.color().withOpacity(enabled ? 0.5 : 0.2),
+        child: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    prop.name,
+                    style: Theme.of(context).textTheme.titleMedium!.copyWith(
+                        color: enabled ? Colors.black : Colors.black38),
+                  ),
+                  Row(mainAxisSize: MainAxisSize.min, children: [
+                    ResourceIcon(
+                      Image.asset("assets/wood.png"),
+                      prop.cost.wood,
+                      size: 25,
+                    ),
+                    ResourceIcon(Image.asset("assets/mud.png"), prop.cost.mud,
+                        size: 25),
+                    ResourceIcon(
+                        Image.asset("assets/stone.png"), prop.cost.stone,
+                        size: 25),
+                  ])
+                ],
+              ),
+              ShapePreview(prop.shape),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class ResourceIcon extends StatelessWidget {
+  final Image image;
+  final int amount;
+  final double size;
+  const ResourceIcon(this.image, this.amount, {this.size = 40, super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      elevation: 2,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 8.0),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            SizedBox(width: size, height: size, child: image),
+            Text(
+              "$amount",
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+          ],
+        ),
       ),
     );
   }
