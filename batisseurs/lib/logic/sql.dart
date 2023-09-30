@@ -148,23 +148,29 @@ class DBApi {
 
     dbPath ??= await _defaultPath();
 
-    // DEV MODE only : reset DB at start
-    final fi = File(dbPath);
-    if (await fi.exists()) {
-      await fi.delete();
-      print("DB deleted");
-    }
-
+    // // DEV MODE only : reset DB at start
+    // final fi = File(dbPath);
+    // if (await fi.exists()) {
+    //   await fi.delete();
+    //   print("DB deleted");
+    // }
     // open/create the database
-    final database = await openDatabase(dbPath, version: _apiVersion,
-        onCreate: (db, version) async {
-      // Run the CREATE TABLE statements on the database.
-      final ba = db.batch();
-      for (var table in _createSQLStatements) {
-        ba.execute(table);
-      }
-      ba.commit();
-    }, singleInstance: false);
+    final database = await openDatabase(
+      dbPath,
+      version: _apiVersion,
+      onConfigure: (Database db) async {
+        await db.execute('PRAGMA foreign_keys = ON');
+      },
+      onCreate: (db, version) async {
+        // Run the CREATE TABLE statements on the database.
+        final ba = db.batch();
+        for (var table in _createSQLStatements) {
+          ba.execute(table);
+        }
+        ba.commit();
+      },
+      singleInstance: false,
+    );
 
     return DBApi._(database);
   }
@@ -223,6 +229,7 @@ class DBApi {
 
   // remove all teams, terminating the game
   Future<void> removeGame(int id) async {
+    await db.delete("teams", where: "idGame = ?", whereArgs: [id]);
     await db.delete("games", where: "id = ?", whereArgs: [id]);
   }
 
