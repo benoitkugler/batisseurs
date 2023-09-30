@@ -135,7 +135,9 @@ class _GameScreenState extends State<GameScreen> {
       appBar: AppBar(
         title: const Text("Partie en cours"),
         actions: [
-          TextButton(onPressed: _showRankings, child: const Text("Classement"))
+          TextButton(onPressed: _showRankings, child: const Text("Classement")),
+          IconButton(
+              onPressed: _closeGame, icon: const Icon(Icons.delete_forever)),
         ],
       ),
       body: ListView(
@@ -146,6 +148,30 @@ class _GameScreenState extends State<GameScreen> {
                   child: _TeamCard(e)))
               .toList()),
     );
+  }
+
+  _closeGame() async {
+    final confirm = await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+              title: const Text("Terminer la partie"),
+              content: const Text(
+                  "Es-tu sur de terminer et effacer la partie ? Cette opération est irréversible."),
+              actions: [
+                ElevatedButton(
+                  onPressed: () => Navigator.of(context).pop(true),
+                  style: ElevatedButton.styleFrom(foregroundColor: Colors.red),
+                  child: const Text("Terminer et effacer"),
+                )
+              ],
+            ));
+
+    if (confirm ?? false) {
+      await widget.db.removeGame(widget.game.id);
+      if (!mounted) return;
+
+      Navigator.of(context).pop();
+    }
   }
 
   _showRankings() async {
@@ -440,6 +466,7 @@ class __TradeDialogState extends State<_TradeDialog> {
   Widget build(BuildContext context) {
     return AlertDialog(
       title: const Text("Echanger des ressources"),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 4, vertical: 12),
       content: Column(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
@@ -542,11 +569,13 @@ class _IntegerInput extends StatelessWidget {
         Row(
           children: [
             IconButton(
+                visualDensity: VisualDensity.compact,
                 padding: EdgeInsets.zero,
                 iconSize: 18,
                 onPressed: value > 0 ? () => onChange(value - 1) : null,
                 icon: const Icon(Icons.remove)),
             IconButton(
+                visualDensity: VisualDensity.compact,
                 padding: EdgeInsets.zero,
                 iconSize: 18,
                 onPressed: () => onChange(value + 1),

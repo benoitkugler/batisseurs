@@ -98,9 +98,16 @@ class _LoaderState extends State<_Loader> {
         : _Home(game, game == null ? _showGameSetup : _goToGame);
   }
 
-  _goToGame() {
-    Navigator.of(context)
+  _goToGame() async {
+    await Navigator.of(context)
         .push(MaterialPageRoute(builder: (context) => GameScreen(db!, game!)));
+    if (!mounted) return;
+
+    // make sure the state is updated
+    final g = await db!.selectGame();
+    setState(() {
+      game = g;
+    });
   }
 
   _showGameSetup() async {
@@ -141,7 +148,7 @@ class _Home extends StatelessWidget {
                 "Les bâtisseurs",
                 style: Theme.of(context).textTheme.displaySmall,
               ),
-              Expanded(
+              Flexible(
                 child: Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: FadeInImage(
