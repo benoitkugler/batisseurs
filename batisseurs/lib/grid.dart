@@ -32,8 +32,10 @@ class Grid extends StatefulWidget {
   final int gridSize;
 
   final void Function(BuildingType, Shape) onBuild;
+  final void Function(Building) onDelete;
 
-  const Grid(this.team, this.gridSize, this.onBuild, {super.key});
+  const Grid(this.team, this.gridSize, this.onBuild, this.onDelete,
+      {super.key});
 
   @override
   State<Grid> createState() => _GridState();
@@ -131,10 +133,34 @@ class _GridState extends State<Grid> {
               ]);
             }),
           ),
-          if (selected != null) _BuildingSummary(selected!),
+          if (selected != null) _BuildingSummary(selected!, _confirmDelete),
         ],
       ),
     );
+  }
+
+  _confirmDelete() async {
+    final ok = await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+                title: const Text("Supprimer le bâtiment"),
+                content:
+                    const Text("Confirmez-vous la suppression du batîment ?"),
+                actions: [
+                  ElevatedButton(
+                    onPressed: () => Navigator.of(context).pop(true),
+                    style:
+                        ElevatedButton.styleFrom(foregroundColor: Colors.red),
+                    child: const Text("Supprimer"),
+                  )
+                ]));
+    if ((ok ?? false) && selected != null) {
+      widget.onDelete(selected!);
+
+      setState(() {
+        selected = null;
+      });
+    }
   }
 
   _showBuildings() async {
@@ -400,17 +426,21 @@ _MergedBuildings _merge(List<Building> l, int gridSize) {
 
 class _BuildingSummary extends StatelessWidget {
   final Building building;
+  final void Function() onDelete;
 
-  const _BuildingSummary(this.building, {super.key});
+  const _BuildingSummary(this.building, this.onDelete, {super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      color: building.type.color().withOpacity(0.8),
-      child: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Text(buildingProperties[building.type.index].name,
-            style: Theme.of(context).textTheme.titleMedium),
+    return InkWell(
+      onLongPress: onDelete,
+      child: Card(
+        color: building.type.color().withOpacity(0.8),
+        child: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Text(buildingProperties[building.type.index].name,
+              style: Theme.of(context).textTheme.titleMedium),
+        ),
       ),
     );
   }

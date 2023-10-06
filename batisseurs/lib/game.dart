@@ -323,7 +323,9 @@ class __TeamDetailsState extends State<_TeamDetails> {
           ),
         ),
         const SizedBox(height: 10),
-        Expanded(child: Grid(team, widget.game.gridSize, _addBuilding)),
+        Expanded(
+            child: Grid(
+                team, widget.game.gridSize, _addBuilding, _removeBuilding)),
       ]),
     );
   }
@@ -375,6 +377,13 @@ class __TeamDetailsState extends State<_TeamDetails> {
     setState(() {
       team.buildings.add(b);
       team = team.copyWith(team: newT);
+    });
+  }
+
+  _removeBuilding(Building building) async {
+    await widget.db.deleteBuilding(building.id);
+    setState(() {
+      team.buildings.removeWhere((element) => element.id == building.id);
     });
   }
 
