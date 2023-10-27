@@ -5,9 +5,12 @@ import 'package:batisseurs/logic/grid.dart';
 class Game {
   final int id;
   final int gridSize;
+  final bool allowDuplicate;
+
   const Game({
     required this.id,
     required this.gridSize,
+    required this.allowDuplicate,
   });
 }
 

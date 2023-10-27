@@ -24,9 +24,16 @@ List<String> pickTeamNames(int nbTeams) {
 class GameConfig {
   final int nbTeams;
   final int gridSize;
+  final bool allowDuplicateBuildings;
 
-  GameConfig(this.nbTeams, this.gridSize);
+  GameConfig(this.nbTeams, this.gridSize, this.allowDuplicateBuildings);
 }
+
+/// proposed number of teams goes from 1 to [maxNbTeam]
+const maxNbTeam = 7;
+
+/// proposed grid configs
+const gridSizes = [8, 10, 12];
 
 class GameConfigDialog extends StatefulWidget {
   final void Function(GameConfig) launch;
@@ -39,10 +46,12 @@ class GameConfigDialog extends StatefulWidget {
 class _GameConfigDialogState extends State<GameConfigDialog> {
   int nbTeams = 3;
   int gridSize = 10;
+  bool allowDup = false;
 
   @override
   Widget build(BuildContext context) {
     final th = Theme.of(context);
+    final headerStyle = th.textTheme.titleMedium;
     return AlertDialog(
       title: const Text("Configurer la partie"),
       content: Column(
@@ -50,12 +59,12 @@ class _GameConfigDialogState extends State<GameConfigDialog> {
         children: [
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 8.0),
-            child: Text("Nombre d'équipes", style: th.textTheme.titleMedium),
+            child: Text("Nombre d'équipes", style: headerStyle),
           ),
           Wrap(
             alignment: WrapAlignment.center,
             children: List.generate(
-                7,
+                maxNbTeam,
                 (index) => Padding(
                       padding: const EdgeInsets.all(4.0),
                       child: ChoiceChip(
@@ -72,12 +81,11 @@ class _GameConfigDialogState extends State<GameConfigDialog> {
           ),
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 8.0),
-            child: Text("Taille de la grille",
-                style: Theme.of(context).textTheme.titleMedium),
+            child: Text("Taille de la grille", style: headerStyle),
           ),
           Wrap(
             alignment: WrapAlignment.center,
-            children: [7, 10, 12]
+            children: gridSizes
                 .map((size) => Padding(
                       padding: const EdgeInsets.all(4.0),
                       child: ChoiceChip(
@@ -93,11 +101,22 @@ class _GameConfigDialogState extends State<GameConfigDialog> {
                     ))
                 .toList(),
           ),
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8.0),
+            child: Text("Bâtiments en double", style: headerStyle),
+          ),
+          CheckboxListTile(
+              title: const Text("Autoriser la répétition d'un même bâtiment"),
+              value: allowDup,
+              onChanged: (b) => setState(() {
+                    allowDup = b ?? false;
+                  }))
         ],
       ),
       actions: [
         ElevatedButton(
-            onPressed: () => widget.launch(GameConfig(nbTeams, gridSize)),
+            onPressed: () =>
+                widget.launch(GameConfig(nbTeams, gridSize, allowDup)),
             child: const Text("Démarrer"))
       ],
     );
@@ -324,8 +343,8 @@ class __TeamDetailsState extends State<_TeamDetails> {
         ),
         const SizedBox(height: 10),
         Expanded(
-            child: TeamGrid(
-                team, widget.game.gridSize, _addBuilding, _removeBuilding)),
+            child: TeamGrid(team, widget.game.gridSize,
+                widget.game.allowDuplicate, _addBuilding, _removeBuilding)),
       ]),
     );
   }

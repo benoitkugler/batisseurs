@@ -30,11 +30,13 @@ class TeamGrid extends StatefulWidget {
   final TeamExt team;
 
   final int gridSize;
+  final bool allowDuplicateBuildings;
 
   final void Function(BuildingType, Shape) onBuild;
   final void Function(Building) onDelete;
 
-  const TeamGrid(this.team, this.gridSize, this.onBuild, this.onDelete,
+  const TeamGrid(this.team, this.gridSize, this.allowDuplicateBuildings,
+      this.onBuild, this.onDelete,
       {super.key});
 
   @override
@@ -165,6 +167,7 @@ class _TeamGridState extends State<TeamGrid> {
 
   _showBuildings() async {
     final t = widget.team.team;
+    final currentBuildings = widget.team.buildings.map((e) => e.type).toSet();
     final toBuild = await showDialog<BuildingType>(
       context: context,
       builder: (context) => AlertDialog(
@@ -177,10 +180,11 @@ class _TeamGridState extends State<TeamGrid> {
               itemBuilder: (context, index) {
                 final e = BuildingType.values[index];
                 final prop = buildingProperties[e.index];
-                return _BuildingCard(
-                    e,
-                    prop,
-                    prop.cost.isSatisfied(t.wood, t.mud, t.stone),
+                final hasResources =
+                    prop.cost.isSatisfied(t.wood, t.mud, t.stone);
+                final isDupOK = widget.allowDuplicateBuildings ||
+                    !currentBuildings.contains(e);
+                return _BuildingCard(e, prop, hasResources && isDupOK,
                     () => Navigator.of(context).pop(e));
               }),
         ),

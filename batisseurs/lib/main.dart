@@ -105,8 +105,8 @@ class _LoaderState extends State<_Loader> {
             GameConfigDialog((conf) => Navigator.of(context).pop(conf)));
     if (conf == null) return;
 
-    final newGame =
-        await db!.createGame(conf.gridSize, pickTeamNames(conf.nbTeams));
+    final newGame = await db!.createGame(conf.gridSize,
+        conf.allowDuplicateBuildings, pickTeamNames(conf.nbTeams));
     if (!mounted) return;
 
     setState(() {

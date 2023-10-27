@@ -10,7 +10,8 @@ const _createSQLStatements = [
   """ 
   CREATE TABLE games(
     id INTEGER PRIMARY KEY,
-    gridSize INTEGER NOT NULL
+    gridSize INTEGER NOT NULL,
+    allowDuplicate BOOLEAN NOT NULL
   );
   """,
   """ 
@@ -57,14 +58,15 @@ extension Bs on Shape {
 extension G on Game {
   static Game fromSQLMap(Map<String, dynamic> map) {
     return Game(
-      id: map["id"],
-      gridSize: map["gridSize"],
-    );
+        id: map["id"],
+        gridSize: map["gridSize"],
+        allowDuplicate: map["allowDuplicate"] == 1);
   }
 
   Map<String, dynamic> toSQLMap(bool ignoreID) {
     final out = {
       "gridSize": gridSize,
+      "allowDuplicate": allowDuplicate ? 1 : 0,
     };
     if (!ignoreID) {
       out["id"] = id;
@@ -154,6 +156,7 @@ class DBApi {
     //   await fi.delete();
     //   print("DB deleted");
     // }
+
     // open/create the database
     final database = await openDatabase(
       dbPath,
@@ -185,16 +188,19 @@ class DBApi {
     return G.fromSQLMap(l.first);
   }
 
-  Future<Game> createGame(int gridSize, List<String> teamNames) async {
+  Future<Game> createGame(
+      int gridSize, bool allowDuplicate, List<String> teamNames) async {
     final idGame = await db.insert(
-        "games", Game(id: 0, gridSize: gridSize).toSQLMap(true));
+        "games",
+        Game(id: 0, gridSize: gridSize, allowDuplicate: allowDuplicate)
+            .toSQLMap(true));
 
     final batch = db.batch();
     for (var name in teamNames) {
       batch.insert("teams", Team.empty(idGame, name).toSQLMap(true));
     }
     batch.commit();
-    return Game(id: idGame, gridSize: gridSize);
+    return Game(id: idGame, gridSize: gridSize, allowDuplicate: allowDuplicate);
   }
 
   Future<List<TeamExt>> selectTeams(int idGame) async {
