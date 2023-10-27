@@ -324,7 +324,7 @@ class __TeamDetailsState extends State<_TeamDetails> {
         ),
         const SizedBox(height: 10),
         Expanded(
-            child: Grid(
+            child: TeamGrid(
                 team, widget.game.gridSize, _addBuilding, _removeBuilding)),
       ]),
     );

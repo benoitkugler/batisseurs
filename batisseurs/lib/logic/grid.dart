@@ -34,7 +34,8 @@ extension Bs on Shape {
         !crible[coord.x][coord.y]);
   }
 
-  Coord get minC {
+  /// returns the cell with the lowest X and Y coordinates
+  Coord get upperLeftCell {
     int minX = 1000;
     int minY = 1000;
     for (var element in this) {
@@ -64,7 +65,7 @@ extension Bs on Shape {
 
   /// intrinsic size of the shape
   int size() {
-    return max(maxC.x - minC.x + 1, maxC.y - minC.y + 1);
+    return max(maxC.x - upperLeftCell.x + 1, maxC.y - upperLeftCell.y + 1);
   }
 
   Shape translate(int tx, int ty) {
@@ -84,9 +85,10 @@ extension Bs on Shape {
   }
 
   static Shape _fromCenters(Iterable<Offset> centers) {
-    return centers
-        .map((e) => Coord((e.dx - 0.5).round(), (e.dy - 0.5).toInt()))
+    final out = centers
+        .map((e) => Coord((e.dx - 0.5).ceil(), (e.dy - 0.5).ceil()))
         .toList();
+    return out;
   }
 
   List<Offset> _centers() =>
@@ -102,8 +104,14 @@ extension Bs on Shape {
 
   /// [rotate] return the same shape, with
   /// -90° rotation applied
-  /// The shape may not fit into the standard grid
+  /// The shape may not fit into the standard grid.
   Shape rotate() {
+    // Implementation overview :
+    //  use the centers of each cell, which have half integer coords
+    //  center these points around their barycenter, rounded to half integer coords, with same 'parity'
+    //  apply the rotation, yielding half integers coords, still with same 'parity'
+    //  translate back by the barycenter, still with same 'parity'
+    //  convert from center to cells
     final cs = _centers();
     Offset barycentre = _barycentre(cs);
     // round to half integers
@@ -111,6 +119,7 @@ extension Bs on Shape {
     barycentre =
         Offset(barycentre.dx.roundToDouble(), barycentre.dy.roundToDouble());
     barycentre = barycentre.scale(1 / 2, 1 / 2);
+
     // perform the rotation (x, y) -> (-y, x) centered at the barycentre
     final rotatedCenters = cs.map((point) {
       final tmp = point - barycentre;

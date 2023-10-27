@@ -20,13 +20,13 @@ class ShapePreview extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final minC = shape.minC;
+    final minC = shape.upperLeftCell;
     final innerShape = shape.translate(-minC.x, -minC.y);
     return _FitBuilding(20, innerShape, true, false, Colors.yellow);
   }
 }
 
-class Grid extends StatefulWidget {
+class TeamGrid extends StatefulWidget {
   final TeamExt team;
 
   final int gridSize;
@@ -34,14 +34,14 @@ class Grid extends StatefulWidget {
   final void Function(BuildingType, Shape) onBuild;
   final void Function(Building) onDelete;
 
-  const Grid(this.team, this.gridSize, this.onBuild, this.onDelete,
+  const TeamGrid(this.team, this.gridSize, this.onBuild, this.onDelete,
       {super.key});
 
   @override
-  State<Grid> createState() => _GridState();
+  State<TeamGrid> createState() => _TeamGridState();
 }
 
-class _GridState extends State<Grid> {
+class _TeamGridState extends State<TeamGrid> {
   BuildingType? toPlace;
   Shape? shapeToPlace;
 
@@ -57,7 +57,7 @@ class _GridState extends State<Grid> {
   }
 
   @override
-  void didUpdateWidget(covariant Grid oldWidget) {
+  void didUpdateWidget(covariant TeamGrid oldWidget) {
     _buildCrible();
     super.didUpdateWidget(oldWidget);
   }
@@ -372,7 +372,7 @@ class _ToPlaceBuilding extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cellSize = gridWidth / gridSize;
-    final minC = shape.minC;
+    final minC = shape.upperLeftCell;
     final innerShape = shape.translate(-minC.x, -minC.y);
 
     return DragTarget(
