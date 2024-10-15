@@ -452,7 +452,7 @@ class _BuildingSummary extends StatelessWidget {
 
 class _BuildingCard extends StatelessWidget {
   final BuildingType type;
-  final BuildingProperty prop;
+  final BuildingProperties prop;
   final bool enabled;
   final void Function() onTap;
 
@@ -495,9 +495,53 @@ class _BuildingCard extends StatelessWidget {
                   ])
                 ],
               ),
+              _BuildingEffect(prop.effect),
               ShapePreview(prop.shape),
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class _BuildingEffect extends StatelessWidget {
+  final BuildingEffect effect;
+  const _BuildingEffect(this.effect, {super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final String icon;
+    final int bonus;
+    final effect = this.effect;
+
+    switch (effect) {
+      case VictoryPointEffect():
+        bonus = effect.points;
+        icon = "assets/victory.png";
+      case BonusCupEffect():
+        bonus = effect.cups;
+        icon = "assets/cup.png";
+      case ContremaitreEffect():
+        bonus = effect.contremaitres;
+        icon = "assets/contremaitre.png";
+      case AttackEffect():
+        bonus = effect.attack;
+        icon = "assets/swords.png";
+      case DefenseEffect():
+        bonus = effect.defense;
+        icon = "assets/shield.png";
+    }
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            SizedBox(width: 30, height: 30, child: Image.asset(icon)),
+            Text("+ $bonus"),
+          ],
         ),
       ),
     );

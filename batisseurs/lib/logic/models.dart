@@ -104,33 +104,7 @@ class TeamExt {
     final out = Stats();
     for (var building in buildings) {
       final i = building.type.index;
-      if (0 <= i && i < victoryPoints.length) {
-        out.victoryPoints += victoryPoints[i];
-      } else {
-        switch (building.type) {
-          case BuildingType.bassinArgileux:
-          case BuildingType.poterie:
-            out.bonusCup += 1;
-          case BuildingType.atelier:
-            out.bonusCup += 2;
-          case BuildingType.petiteTourGarde:
-          case BuildingType.grandeTourGarde:
-            out.defense += 1;
-          case BuildingType.forteresse:
-            out.defense += 2;
-          case BuildingType.armurerie:
-          case BuildingType.ecurie:
-            out.attack += 1;
-          case BuildingType.campEntrainement:
-            out.attack += 2;
-          case BuildingType.ecoleArts:
-            out.contremaitres += 1;
-          case BuildingType.ecoleArchitecture:
-            out.contremaitres += 2;
-          default:
-            continue;
-        }
-      }
+      buildingProperties[i].effect.apply(out);
     }
     return out;
   }
@@ -153,6 +127,60 @@ class Stats {
   @override
   String toString() {
     return "Stats($victoryPoints,$attack,$defense,$bonusCup,$contremaitres)";
+  }
+}
+
+sealed class BuildingEffect {
+  void apply(Stats stats);
+}
+
+class VictoryPointEffect implements BuildingEffect {
+  final int points;
+  const VictoryPointEffect(this.points);
+
+  @override
+  void apply(Stats stats) {
+    stats.victoryPoints += points;
+  }
+}
+
+class BonusCupEffect implements BuildingEffect {
+  final int cups;
+  const BonusCupEffect(this.cups);
+
+  @override
+  void apply(Stats stats) {
+    stats.bonusCup += cups;
+  }
+}
+
+class ContremaitreEffect implements BuildingEffect {
+  final int contremaitres;
+  const ContremaitreEffect(this.contremaitres);
+
+  @override
+  void apply(Stats stats) {
+    stats.contremaitres += contremaitres;
+  }
+}
+
+class AttackEffect implements BuildingEffect {
+  final int attack;
+  const AttackEffect(this.attack);
+
+  @override
+  void apply(Stats stats) {
+    stats.attack += attack;
+  }
+}
+
+class DefenseEffect implements BuildingEffect {
+  final int defense;
+  const DefenseEffect(this.defense);
+
+  @override
+  void apply(Stats stats) {
+    stats.defense += defense;
   }
 }
 
@@ -214,102 +242,148 @@ enum BuildingType {
   campEntrainement
 }
 
-class BuildingProperty {
+class BuildingProperties {
   final String name;
   final BuildingCost cost;
   final Shape shape;
-  const BuildingProperty(this.name, this.cost, this.shape);
+  final BuildingEffect effect;
+  const BuildingProperties(this.name, this.cost, this.shape, this.effect);
 }
 
 /// to keep in sync with [BuildingType] values
-const buildingProperties = <BuildingProperty>[
-  BuildingProperty(
-      "Marché", BuildingCost(3, 0, 0), [Coord(0, 0), Coord(1, 0), Coord(2, 0)]),
-  BuildingProperty("Forum", BuildingCost(3, 2, 2),
-      [Coord(0, 1), Coord(1, 1), Coord(1, 0), Coord(2, 0)]),
-  BuildingProperty("Chambre de commerce", BuildingCost(1, 3, 4),
-      [Coord(2, 2), Coord(2, 1), Coord(1, 1), Coord(0, 1), Coord(0, 0)]),
-  BuildingProperty("Obélisque", BuildingCost(0, 1, 1),
-      [Coord(0, 0), Coord(1, 1), Coord(0, 1)]),
-  BuildingProperty(
-      "Statue", BuildingCost(1, 1, 1), [Coord(0, 0), Coord(1, 1), Coord(1, 0)]),
-  BuildingProperty("Jardins", BuildingCost(5, 1, 1), [
-    Coord(0, 0),
-    Coord(1, 1),
-    Coord(1, 0),
-    Coord(0, 1),
-    Coord(2, 0),
-    Coord(2, 1)
-  ]),
-  BuildingProperty("Théâtre", BuildingCost(3, 0, 4), [
-    Coord(0, 1),
-    Coord(0, 2),
-    Coord(2, 1),
-    Coord(0, 0),
-    Coord(1, 0),
-    Coord(2, 0)
-  ]),
-  BuildingProperty("Panthéon", BuildingCost(0, 0, 1),
-      [Coord(0, 0), Coord(0, 1), Coord(1, 0)]),
-  BuildingProperty("Sénat", BuildingCost(3, 2, 2),
-      [Coord(0, 0), Coord(0, 1), Coord(1, 1), Coord(2, 1)]),
-  BuildingProperty("Hôtel de ville", BuildingCost(5, 4, 4),
-      [Coord(0, 0), Coord(0, 1), Coord(1, 1), Coord(2, 1), Coord(2, 0)]),
-  BuildingProperty("Officine", BuildingCost(2, 1, 0),
-      [Coord(0, 1), Coord(1, 1), Coord(1, 0)]),
-  BuildingProperty("Laboratoire", BuildingCost(4, 1, 1),
-      [Coord(0, 1), Coord(1, 1), Coord(0, 0)]),
-  BuildingProperty("Observatoire", BuildingCost(4, 2, 1), [
-    Coord(0, 1),
-    Coord(1, 1),
-    Coord(2, 1),
-    Coord(3, 1),
-    Coord(4, 1),
-    Coord(4, 0)
-  ]),
-  BuildingProperty("Académie", BuildingCost(1, 2, 3), [
-    Coord(1, 1),
-    Coord(3, 1),
-    Coord(0, 0),
-    Coord(1, 0),
-    Coord(2, 0),
-    Coord(3, 0)
-  ]),
-  BuildingProperty(
-      "Bassin argileux", BuildingCost(7, 2, 2), [Coord(1, 0), Coord(0, 0)]),
-  BuildingProperty("Poterie", BuildingCost(4, 1, 1),
-      [Coord(1, 1), Coord(0, 1), Coord(1, 0), Coord(2, 1)]),
-  BuildingProperty("Atelier", BuildingCost(8, 4, 3), [
-    Coord(1, 1),
-    Coord(0, 1),
-    Coord(1, 0),
-    Coord(2, 1),
-    Coord(2, 0),
-    Coord(3, 1)
-  ]),
-  BuildingProperty("Ecole des arts", BuildingCost(2, 1, 3),
-      [Coord(1, 0), Coord(0, 0), Coord(2, 0)]),
-  BuildingProperty("Ecole d'architecture", BuildingCost(6, 3, 4),
-      [Coord(1, 0), Coord(0, 0), Coord(2, 0), Coord(3, 0), Coord(4, 0)]),
-  BuildingProperty("Petite tour de garde", BuildingCost(3, 1, 3),
-      [Coord(1, 0), Coord(0, 0), Coord(2, 0)]),
-  BuildingProperty("Grande tour de garde", BuildingCost(5, 2, 0),
-      [Coord(1, 1), Coord(0, 1), Coord(2, 1), Coord(1, 0), Coord(2, 0)]),
-  BuildingProperty("Forteresse", BuildingCost(3, 2, 6), [
-    Coord(1, 1),
-    Coord(0, 1),
-    Coord(2, 1),
-    Coord(2, 0),
-    Coord(0, 0),
-    Coord(3, 0),
-    Coord(3, 1)
-  ]),
-  BuildingProperty("Armurerie", BuildingCost(3, 2, 2),
-      [Coord(1, 1), Coord(0, 1), Coord(0, 0)]),
-  BuildingProperty("Ecurie", BuildingCost(8, 0, 0),
-      [Coord(1, 1), Coord(0, 1), Coord(0, 0), Coord(1, 0)]),
-  BuildingProperty("Camp d'entrainement", BuildingCost(5, 4, 4),
-      [Coord(1, 1), Coord(0, 1), Coord(0, 0), Coord(1, 0), Coord(2, 1)]),
+const buildingProperties = <BuildingProperties>[
+  BuildingProperties("Marché", BuildingCost(3, 0, 0),
+      [Coord(0, 0), Coord(1, 0), Coord(2, 0)], VictoryPointEffect(1)),
+  BuildingProperties(
+      "Forum",
+      BuildingCost(3, 2, 2),
+      [Coord(0, 1), Coord(1, 1), Coord(1, 0), Coord(2, 0)],
+      VictoryPointEffect(3)),
+  BuildingProperties(
+      "Chambre de commerce",
+      BuildingCost(1, 3, 4),
+      [Coord(2, 2), Coord(2, 1), Coord(1, 1), Coord(0, 1), Coord(0, 0)],
+      VictoryPointEffect(6)),
+  BuildingProperties("Obélisque", BuildingCost(0, 1, 1),
+      [Coord(0, 0), Coord(1, 1), Coord(0, 1)], VictoryPointEffect(2)),
+  BuildingProperties("Statue", BuildingCost(1, 1, 1),
+      [Coord(0, 0), Coord(1, 1), Coord(1, 0)], VictoryPointEffect(2)),
+  BuildingProperties(
+      "Jardins",
+      BuildingCost(5, 1, 1),
+      [
+        Coord(0, 0),
+        Coord(1, 1),
+        Coord(1, 0),
+        Coord(0, 1),
+        Coord(2, 0),
+        Coord(2, 1)
+      ],
+      VictoryPointEffect(5)),
+  BuildingProperties(
+      "Théâtre",
+      BuildingCost(3, 0, 4),
+      [
+        Coord(0, 1),
+        Coord(0, 2),
+        Coord(2, 1),
+        Coord(0, 0),
+        Coord(1, 0),
+        Coord(2, 0)
+      ],
+      VictoryPointEffect(6)),
+  BuildingProperties("Panthéon", BuildingCost(0, 0, 1),
+      [Coord(0, 0), Coord(0, 1), Coord(1, 0)], VictoryPointEffect(1)),
+  BuildingProperties(
+      "Sénat",
+      BuildingCost(3, 2, 2),
+      [Coord(0, 0), Coord(0, 1), Coord(1, 1), Coord(2, 1)],
+      VictoryPointEffect(3)),
+  BuildingProperties(
+      "Hôtel de ville",
+      BuildingCost(5, 4, 4),
+      [Coord(0, 0), Coord(0, 1), Coord(1, 1), Coord(2, 1), Coord(2, 0)],
+      VictoryPointEffect(6)),
+  BuildingProperties("Officine", BuildingCost(2, 1, 0),
+      [Coord(0, 1), Coord(1, 1), Coord(1, 0)], VictoryPointEffect(2)),
+  BuildingProperties("Laboratoire", BuildingCost(4, 1, 1),
+      [Coord(0, 1), Coord(1, 1), Coord(0, 0)], VictoryPointEffect(2)),
+  BuildingProperties(
+      "Observatoire",
+      BuildingCost(4, 2, 1),
+      [
+        Coord(0, 1),
+        Coord(1, 1),
+        Coord(2, 1),
+        Coord(3, 1),
+        Coord(4, 1),
+        Coord(4, 0)
+      ],
+      VictoryPointEffect(5)),
+  BuildingProperties(
+      "Académie",
+      BuildingCost(1, 2, 3),
+      [
+        Coord(1, 1),
+        Coord(3, 1),
+        Coord(0, 0),
+        Coord(1, 0),
+        Coord(2, 0),
+        Coord(3, 0)
+      ],
+      VictoryPointEffect(6)),
+  BuildingProperties("Bassin argileux", BuildingCost(7, 2, 2),
+      [Coord(1, 0), Coord(0, 0)], BonusCupEffect(1)),
+  BuildingProperties("Poterie", BuildingCost(4, 1, 1),
+      [Coord(1, 1), Coord(0, 1), Coord(1, 0), Coord(2, 1)], BonusCupEffect(1)),
+  BuildingProperties(
+      "Atelier",
+      BuildingCost(8, 4, 3),
+      [
+        Coord(1, 1),
+        Coord(0, 1),
+        Coord(1, 0),
+        Coord(2, 1),
+        Coord(2, 0),
+        Coord(3, 1)
+      ],
+      BonusCupEffect(2)),
+  BuildingProperties("Ecole des arts", BuildingCost(2, 1, 3),
+      [Coord(1, 0), Coord(0, 0), Coord(2, 0)], ContremaitreEffect(1)),
+  BuildingProperties(
+      "Ecole d'architecture",
+      BuildingCost(6, 3, 4),
+      [Coord(1, 0), Coord(0, 0), Coord(2, 0), Coord(3, 0), Coord(4, 0)],
+      ContremaitreEffect(2)),
+  BuildingProperties("Petite tour de garde", BuildingCost(3, 1, 3),
+      [Coord(1, 0), Coord(0, 0), Coord(2, 0)], DefenseEffect(1)),
+  BuildingProperties(
+      "Grande tour de garde",
+      BuildingCost(5, 2, 0),
+      [Coord(1, 1), Coord(0, 1), Coord(2, 1), Coord(1, 0), Coord(2, 0)],
+      DefenseEffect(1)),
+  BuildingProperties(
+      "Forteresse",
+      BuildingCost(3, 2, 6),
+      [
+        Coord(1, 1),
+        Coord(0, 1),
+        Coord(2, 1),
+        Coord(2, 0),
+        Coord(0, 0),
+        Coord(3, 0),
+        Coord(3, 1)
+      ],
+      DefenseEffect(2)),
+  BuildingProperties("Armurerie", BuildingCost(3, 2, 2),
+      [Coord(1, 1), Coord(0, 1), Coord(0, 0)], AttackEffect(1)),
+  BuildingProperties("Ecurie", BuildingCost(8, 0, 0),
+      [Coord(1, 1), Coord(0, 1), Coord(0, 0), Coord(1, 0)], AttackEffect(1)),
+  BuildingProperties(
+      "Camp d'entrainement",
+      BuildingCost(5, 4, 4),
+      [Coord(1, 1), Coord(0, 1), Coord(0, 0), Coord(1, 0), Coord(2, 1)],
+      AttackEffect(2)),
 ];
 
 class BuildingCost {
@@ -333,20 +407,3 @@ class BuildingCost {
     return this.wood <= wood && this.mud <= mud && this.stone <= stone;
   }
 }
-
-const victoryPoints = [
-  1, // marche
-  3, // forum
-  6, // chambreCommerce
-  2, // obelisque
-  2, // statue
-  5, // jardins
-  6, // theatre
-  1, // pantheon
-  3, // senat
-  6, // hotelVille
-  2, // officine
-  2, // laboratoire
-  5, // observatoire
-  6, // academie
-];
