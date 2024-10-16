@@ -24,9 +24,11 @@ List<String> pickTeamNames(int nbTeams) {
 class GameConfig {
   final int nbTeams;
   final int gridSize;
-  final bool allowDuplicateBuildings;
 
-  GameConfig(this.nbTeams, this.gridSize, this.allowDuplicateBuildings);
+  /// [duplicatedBuildings] >= 1
+  final int duplicatedBuildings;
+
+  GameConfig(this.nbTeams, this.gridSize, this.duplicatedBuildings);
 }
 
 /// proposed number of teams goes from 1 to [maxNbTeam]
@@ -46,7 +48,7 @@ class GameConfigDialog extends StatefulWidget {
 class _GameConfigDialogState extends State<GameConfigDialog> {
   int nbTeams = 3;
   int gridSize = 10;
-  bool allowDup = false;
+  int duplicatedBuildings = 1;
 
   @override
   Widget build(BuildContext context) {
@@ -105,18 +107,26 @@ class _GameConfigDialogState extends State<GameConfigDialog> {
             padding: const EdgeInsets.symmetric(vertical: 8.0),
             child: Text("Bâtiments en double", style: headerStyle),
           ),
-          CheckboxListTile(
-              title: const Text("Autoriser la répétition d'un même bâtiment"),
-              value: allowDup,
-              onChanged: (b) => setState(() {
-                    allowDup = b ?? false;
-                  }))
+          DropdownMenu(
+              width: 200,
+              onSelected: (value) =>
+                  setState(() => duplicatedBuildings = value ?? 1),
+              label: const Text("Nombre max. de répétitions"),
+              dropdownMenuEntries: [1, 2, 3, 4, 5, 6]
+                  .map((i) => DropdownMenuEntry(value: i, label: "$i"))
+                  .toList()),
+          // CheckboxListTile(
+          //     title: const Text("Autoriser la répétition d'un même bâtiment"),
+          //     value: allowDup,
+          //     onChanged: (b) => setState(() {
+          //           allowDup = b ?? false;
+          //         }))
         ],
       ),
       actions: [
         ElevatedButton(
-            onPressed: () =>
-                widget.launch(GameConfig(nbTeams, gridSize, allowDup)),
+            onPressed: () => widget
+                .launch(GameConfig(nbTeams, gridSize, duplicatedBuildings)),
             child: const Text("Démarrer"))
       ],
     );
@@ -343,8 +353,7 @@ class __TeamDetailsState extends State<_TeamDetails> {
         ),
         const SizedBox(height: 10),
         Expanded(
-            child: TeamGrid(team, widget.game.gridSize,
-                widget.game.allowDuplicate, _addBuilding, _removeBuilding)),
+            child: TeamGrid(team, widget.game, _addBuilding, _removeBuilding)),
       ]),
     );
   }

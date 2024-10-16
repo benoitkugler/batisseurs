@@ -5,12 +5,12 @@ import 'package:batisseurs/logic/grid.dart';
 class Game {
   final int id;
   final int gridSize;
-  final bool allowDuplicate;
+  final int duplicatedBuildings;
 
   const Game({
     required this.id,
     required this.gridSize,
-    required this.allowDuplicate,
+    required this.duplicatedBuildings,
   });
 }
 
@@ -105,6 +105,14 @@ class TeamExt {
     for (var building in buildings) {
       final i = building.type.index;
       buildingProperties[i].effect.apply(out);
+    }
+    return out;
+  }
+
+  Map<BuildingType, int> buildingOccurrences() {
+    final out = <BuildingType, int>{};
+    for (var element in buildings) {
+      out[element.type] = (out[element.type] ?? 0) + 1;
     }
     return out;
   }

@@ -17,7 +17,7 @@ Future main() async {
 
     expect(await db.selectGame(), null);
 
-    final game = await db.createGame(10, true, ["1", "2", "3"]);
+    final game = await db.createGame(10, 2, ["1", "2", "3"]);
 
     expect((await db.selectTeams(game.id)).length, 3);
 

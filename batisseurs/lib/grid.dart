@@ -29,14 +29,12 @@ class ShapePreview extends StatelessWidget {
 class TeamGrid extends StatefulWidget {
   final TeamExt team;
 
-  final int gridSize;
-  final bool allowDuplicateBuildings;
+  final Game game;
 
   final void Function(BuildingType, Shape) onBuild;
   final void Function(Building) onDelete;
 
-  const TeamGrid(this.team, this.gridSize, this.allowDuplicateBuildings,
-      this.onBuild, this.onDelete,
+  const TeamGrid(this.team, this.game, this.onBuild, this.onDelete,
       {super.key});
 
   @override
@@ -65,7 +63,7 @@ class _TeamGridState extends State<TeamGrid> {
   }
 
   _buildCrible() {
-    final crible = matrix(widget.gridSize, false);
+    final crible = matrix(widget.game.gridSize, false);
     for (var shape in widget.team.buildings) {
       for (var coord in shape.squares) {
         crible[coord.x][coord.y] = true;
@@ -119,19 +117,24 @@ class _TeamGridState extends State<TeamGrid> {
             child: LayoutBuilder(builder: (context, constraints) {
               final gridWidth = constraints.biggest.shortestSide;
               return Stack(children: [
-                _GridBackground(gridWidth, widget.gridSize, gridColor),
+                _GridBackground(gridWidth, widget.game.gridSize, gridColor),
                 _Buildings(
                     gridWidth,
-                    widget.gridSize,
-                    _merge(widget.team.buildings, widget.gridSize),
+                    widget.game.gridSize,
+                    _merge(widget.team.buildings, widget.game.gridSize),
                     toPlace != null,
                     selected,
                     (b) => setState(() {
                           selected = b;
                         })),
                 if (shapeToPlace != null)
-                  _ToPlaceBuilding(gridWidth, widget.gridSize, shapeToPlace!,
-                      _onMoveToPlace, _onDropToPlace, _onRotateToPlace)
+                  _ToPlaceBuilding(
+                      gridWidth,
+                      widget.game.gridSize,
+                      shapeToPlace!,
+                      _onMoveToPlace,
+                      _onDropToPlace,
+                      _onRotateToPlace)
               ]);
             }),
           ),
@@ -167,7 +170,8 @@ class _TeamGridState extends State<TeamGrid> {
 
   _showBuildings() async {
     final t = widget.team.team;
-    final currentBuildings = widget.team.buildings.map((e) => e.type).toSet();
+
+    final currentBuildings = widget.team.buildingOccurrences();
     final toBuild = await showDialog<BuildingType>(
       context: context,
       builder: (context) => AlertDialog(
@@ -182,8 +186,8 @@ class _TeamGridState extends State<TeamGrid> {
                 final prop = buildingProperties[e.index];
                 final hasResources =
                     prop.cost.isSatisfied(t.wood, t.mud, t.stone);
-                final isDupOK = widget.allowDuplicateBuildings ||
-                    !currentBuildings.contains(e);
+                final isDupOK = (currentBuildings[e] ?? 0) + 1 <=
+                    widget.game.duplicatedBuildings;
                 return _BuildingCard(e, prop, hasResources && isDupOK,
                     () => Navigator.of(context).pop(e));
               }),
@@ -196,12 +200,13 @@ class _TeamGridState extends State<TeamGrid> {
     setState(() {
       toPlace = toBuild;
       // start with the shape in the center
-      shapeToPlace =
-          buildingProperties[toBuild.index].shape.centerOnGrid(widget.gridSize);
+      shapeToPlace = buildingProperties[toBuild.index]
+          .shape
+          .centerOnGrid(widget.game.gridSize);
     });
   }
 
-  bool _isBuildingValid() => shapeToPlace!.mayFit(crible, widget.gridSize);
+  bool _isBuildingValid() => shapeToPlace!.mayFit(crible, widget.game.gridSize);
 
   _onBuild() {
     widget.onBuild(toPlace!, shapeToPlace!);
@@ -210,14 +215,14 @@ class _TeamGridState extends State<TeamGrid> {
   }
 
   _onMoveToPlace(Shape shape) {
-    final ok = shape.mayFit(crible, widget.gridSize);
+    final ok = shape.mayFit(crible, widget.game.gridSize);
     setState(() {
       gridColor = ok ? Colors.green : Colors.red;
     });
   }
 
   _onDropToPlace(Shape shape) {
-    final ok = shape.mayFit(crible, widget.gridSize);
+    final ok = shape.mayFit(crible, widget.game.gridSize);
     setState(() {
       gridColor = Colors.grey;
       if (!ok) return;

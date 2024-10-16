@@ -7,14 +7,14 @@ import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 
 const _createSQLStatements = [
-  """ 
+  """
   CREATE TABLE games(
     id INTEGER PRIMARY KEY,
     gridSize INTEGER NOT NULL,
-    allowDuplicate BOOLEAN NOT NULL
+    duplicatedBuildings INTEGER NOT NULL
   );
   """,
-  """ 
+  """
   CREATE TABLE teams(
     id INTEGER PRIMARY KEY,
     idGame INTEGER NOT NULL,
@@ -25,7 +25,7 @@ const _createSQLStatements = [
     FOREIGN KEY(idGame) REFERENCES games(id) ON DELETE CASCADE
   );
   """,
-  """ 
+  """
   CREATE TABLE buildings(
     id INTEGER PRIMARY KEY,
     idTeam INTEGER NOT NULL,
@@ -60,13 +60,13 @@ extension G on Game {
     return Game(
         id: map["id"],
         gridSize: map["gridSize"],
-        allowDuplicate: map["allowDuplicate"] == 1);
+        duplicatedBuildings: map["duplicatedBuildings"]);
   }
 
   Map<String, dynamic> toSQLMap(bool ignoreID) {
     final out = {
       "gridSize": gridSize,
-      "allowDuplicate": allowDuplicate ? 1 : 0,
+      "duplicatedBuildings": duplicatedBuildings,
     };
     if (!ignoreID) {
       out["id"] = id;
@@ -189,10 +189,13 @@ class DBApi {
   }
 
   Future<Game> createGame(
-      int gridSize, bool allowDuplicate, List<String> teamNames) async {
+      int gridSize, int duplicatedBuildings, List<String> teamNames) async {
     final idGame = await db.insert(
         "games",
-        Game(id: 0, gridSize: gridSize, allowDuplicate: allowDuplicate)
+        Game(
+                id: 0,
+                gridSize: gridSize,
+                duplicatedBuildings: duplicatedBuildings)
             .toSQLMap(true));
 
     final batch = db.batch();
@@ -200,7 +203,10 @@ class DBApi {
       batch.insert("teams", Team.empty(idGame, name).toSQLMap(true));
     }
     batch.commit();
-    return Game(id: idGame, gridSize: gridSize, allowDuplicate: allowDuplicate);
+    return Game(
+        id: idGame,
+        gridSize: gridSize,
+        duplicatedBuildings: duplicatedBuildings);
   }
 
   Future<List<TeamExt>> selectTeams(int idGame) async {
