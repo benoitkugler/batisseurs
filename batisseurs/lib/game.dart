@@ -108,6 +108,7 @@ class _GameConfigDialogState extends State<GameConfigDialog> {
             child: Text("Bâtiments en double", style: headerStyle),
           ),
           DropdownMenu(
+              initialSelection: duplicatedBuildings,
               width: 200,
               onSelected: (value) =>
                   setState(() => duplicatedBuildings = value ?? 1),
@@ -115,12 +116,6 @@ class _GameConfigDialogState extends State<GameConfigDialog> {
               dropdownMenuEntries: [1, 2, 3, 4, 5, 6]
                   .map((i) => DropdownMenuEntry(value: i, label: "$i"))
                   .toList()),
-          // CheckboxListTile(
-          //     title: const Text("Autoriser la répétition d'un même bâtiment"),
-          //     value: allowDup,
-          //     onChanged: (b) => setState(() {
-          //           allowDup = b ?? false;
-          //         }))
         ],
       ),
       actions: [
@@ -348,6 +343,7 @@ class __TeamDetailsState extends State<_TeamDetails> {
                   Image.asset("assets/mud.png"), team.team.mud, _addMud),
               _ResourceButton(
                   Image.asset("assets/stone.png"), team.team.stone, _addStone),
+              _ReserveButton(team.team.stock, team.stats().stock, _changeStock),
             ],
           ),
         ),
@@ -438,6 +434,14 @@ class __TeamDetailsState extends State<_TeamDetails> {
       team = team.copyWith(team: t);
     });
   }
+
+  _changeStock(int delta) async {
+    final t = team.team.copyWith(stock: team.team.stock + delta);
+    await widget.db.updateTeam(t);
+    setState(() {
+      team = team.copyWith(team: t);
+    });
+  }
 }
 
 class _ResourceButton extends StatelessWidget {
@@ -464,6 +468,50 @@ class _ResourceButton extends StatelessWidget {
             ],
           ),
           ElevatedButton(onPressed: onAdd, child: const Text("Acheter"))
+        ],
+      ),
+    );
+  }
+}
+
+class _ReserveButton extends StatelessWidget {
+  final int current;
+  final int max;
+  final void Function(int) onChange;
+
+  const _ReserveButton(this.current, this.max, this.onChange, {super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Row(
+            children: [
+              Text(
+                "$current / $max",
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+              const SizedBox(width: 8),
+              SizedBox(
+                  width: 50,
+                  height: 50,
+                  child: Image.asset("assets/reserve.png"))
+            ],
+          ),
+          Row(
+            children: [
+              ElevatedButton(
+                  onPressed: current < max ? () => onChange(1) : null,
+                  child: const Text("Stocker")),
+              const SizedBox(width: 4),
+              ElevatedButton(
+                  onPressed: current > 0 ? () => onChange(-1) : null,
+                  child: const Text("Consommer")),
+            ],
+          )
         ],
       ),
     );

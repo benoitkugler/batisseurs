@@ -6,7 +6,7 @@ extension Bt on BuildingType {
   Color color() {
     if (index <= BuildingType.academie.index) {
       return Colors.blue;
-    } else if (index <= BuildingType.ecoleArchitecture.index) {
+    } else if (index <= BuildingType.reserve.index) {
       return Colors.green;
     } else {
       return Colors.red;
@@ -570,6 +570,9 @@ class _BuildingEffect extends StatelessWidget {
       case DefenseEffect():
         bonus = effect.defense;
         icon = "assets/shield.png";
+      case ReserveEffect():
+        bonus = effect.stock;
+        icon = "assets/reserve.png";
     }
     final children = [
       SizedBox(width: 30, height: 30, child: Image.asset(icon)),

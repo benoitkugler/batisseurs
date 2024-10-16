@@ -22,6 +22,7 @@ const _createSQLStatements = [
     wood INTEGER NOT NULL,
     mud INTEGER NOT NULL,
     stone INTEGER NOT NULL,
+    stock INTEGER NOT NULL,
     FOREIGN KEY(idGame) REFERENCES games(id) ON DELETE CASCADE
   );
   """,
@@ -84,6 +85,7 @@ extension T on Team {
       wood: map["wood"],
       mud: map["mud"],
       stone: map["stone"],
+      stock: map["stock"],
     );
   }
 
@@ -94,6 +96,7 @@ extension T on Team {
       "wood": wood,
       "mud": mud,
       "stone": stone,
+      "stock": stock,
     };
     if (!ignoreID) {
       out["id"] = id;

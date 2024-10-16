@@ -23,6 +23,8 @@ class Team {
   final int wood;
   final int mud;
   final int stone;
+  // reserve
+  final int stock;
 
   const Team({
     required this.id,
@@ -31,6 +33,7 @@ class Team {
     required this.wood,
     required this.mud,
     required this.stone,
+    required this.stock,
   });
 
   factory Team.empty(int idGame, String name) => Team(
@@ -40,6 +43,7 @@ class Team {
         wood: 0,
         mud: 0,
         stone: 0,
+        stock: 0,
       );
 
   Team copyWith({
@@ -49,6 +53,7 @@ class Team {
     int? wood,
     int? mud,
     int? stone,
+    int? stock,
   }) {
     return Team(
       id: id ?? this.id,
@@ -57,6 +62,7 @@ class Team {
       wood: wood ?? this.wood,
       mud: mud ?? this.mud,
       stone: stone ?? this.stone,
+      stock: stock ?? this.stock,
     );
   }
 }
@@ -124,13 +130,15 @@ class Stats {
   int defense;
   int bonusCup;
   int contremaitres;
+  int stock;
 
   Stats(
       {this.victoryPoints = 0,
       this.attack = 0,
       this.defense = 0,
       this.bonusCup = 0,
-      this.contremaitres = 0});
+      this.contremaitres = 0,
+      this.stock = 0});
 
   @override
   String toString() {
@@ -192,6 +200,16 @@ class DefenseEffect implements BuildingEffect {
   }
 }
 
+class ReserveEffect implements BuildingEffect {
+  final int stock;
+  const ReserveEffect(this.stock);
+
+  @override
+  void apply(Stats stats) {
+    stats.stock += stock;
+  }
+}
+
 /// each victory add this and remove to the other team
 const militaryAttackPoint = 3;
 
@@ -240,6 +258,8 @@ enum BuildingType {
   // contremaitres
   ecoleArts,
   ecoleArchitecture,
+  // misc
+  reserve,
   // military defense
   petiteTourGarde,
   grandeTourGarde,
@@ -247,7 +267,7 @@ enum BuildingType {
   // military attack
   armurerie,
   ecurie,
-  campEntrainement
+  campEntrainement,
 }
 
 class BuildingProperties {
@@ -363,6 +383,11 @@ const buildingProperties = <BuildingProperties>[
       BuildingCost(6, 3, 4),
       [Coord(1, 0), Coord(0, 0), Coord(2, 0), Coord(3, 0), Coord(4, 0)],
       ContremaitreEffect(2)),
+  BuildingProperties(
+      "Réserve",
+      BuildingCost(3, 1, 0),
+      [Coord(1, 1), Coord(0, 1), Coord(0, 0), Coord(1, 0), Coord(2, 0)],
+      ReserveEffect(4)),
   BuildingProperties("Petite tour de garde", BuildingCost(3, 1, 3),
       [Coord(1, 0), Coord(0, 0), Coord(2, 0)], DefenseEffect(1)),
   BuildingProperties(
