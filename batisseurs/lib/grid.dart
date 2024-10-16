@@ -477,7 +477,7 @@ class _BuildingSummary extends StatelessWidget {
               Text(buildingProperties[building.type.index].name,
                   style: Theme.of(context).textTheme.titleMedium),
               const SizedBox(width: 10),
-              _BuildingEffect(buildingProperties[building.type.index].effect,
+              BuildingEffectW(buildingProperties[building.type.index].effect,
                   horizontalLayout: true)
             ],
           ),
@@ -532,7 +532,7 @@ class _BuildingCard extends StatelessWidget {
                   ])
                 ],
               ),
-              _BuildingEffect(prop.effect),
+              BuildingEffectW(prop.effect),
               ShapePreview(prop.shape),
             ],
           ),
@@ -542,11 +542,13 @@ class _BuildingCard extends StatelessWidget {
   }
 }
 
-class _BuildingEffect extends StatelessWidget {
+class BuildingEffectW extends StatelessWidget {
   final BuildingEffect effect;
+
   final bool horizontalLayout;
-  const _BuildingEffect(this.effect,
-      {this.horizontalLayout = false, super.key});
+  final double iconSize;
+  const BuildingEffectW(this.effect,
+      {this.horizontalLayout = false, this.iconSize = 30, super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -575,7 +577,7 @@ class _BuildingEffect extends StatelessWidget {
         icon = "assets/reserve.png";
     }
     final children = [
-      SizedBox(width: 30, height: 30, child: Image.asset(icon)),
+      SizedBox(width: iconSize, height: iconSize, child: Image.asset(icon)),
       Padding(
         padding: const EdgeInsets.symmetric(horizontal: 8.0),
         child: Text("+ $bonus"),

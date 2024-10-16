@@ -439,4 +439,8 @@ class BuildingCost {
   bool isSatisfied(int wood, int mud, int stone) {
     return this.wood <= wood && this.mud <= mud && this.stone <= stone;
   }
+
+  int sandCost(int woodCost, int mudCost, int stoneCost) {
+    return wood * woodCost + mud * mudCost + stone * stoneCost;
+  }
 }

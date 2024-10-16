@@ -159,6 +159,9 @@ class _GameScreenState extends State<GameScreen> {
       appBar: AppBar(
         title: const Text("Partie en cours"),
         actions: [
+          TextButton(
+              onPressed: _showBuildingsCost,
+              child: const Text("Coût des bâtiments")),
           TextButton(onPressed: _showRankings, child: const Text("Classement")),
           IconButton(
               onPressed: _closeGame,
@@ -210,6 +213,11 @@ class _GameScreenState extends State<GameScreen> {
         builder: (context) => _TeamDetails(widget.db, widget.game, team)));
 
     _loadTeams();
+  }
+
+  _showBuildingsCost() async {
+    await Navigator.of(context)
+        .push(MaterialPageRoute(builder: (context) => _BuildingsCost()));
   }
 }
 
@@ -727,5 +735,111 @@ class _RankingsDialog extends StatelessWidget {
             ],
           ),
         ));
+  }
+}
+
+class _BuildingsCost extends StatefulWidget {
+  const _BuildingsCost({super.key});
+
+  @override
+  State<_BuildingsCost> createState() => __BuildingsCostState();
+}
+
+TableCell _padded(Widget w) => TableCell(
+    verticalAlignment: TableCellVerticalAlignment.middle,
+    child: Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8.0),
+      child: w,
+    ));
+
+class __BuildingsCostState extends State<_BuildingsCost> {
+  int woodCost = 1;
+  int mudCost = 2;
+  int stoneCost = 3;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text("Coût des bâtiments"),
+      ),
+      body: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  DropdownMenu(
+                      initialSelection: woodCost,
+                      width: 200,
+                      onSelected: (value) =>
+                          setState(() => woodCost = value ?? 1),
+                      label: const Text("Prix du bois"),
+                      dropdownMenuEntries: [1, 2, 3, 4, 5]
+                          .map((i) => DropdownMenuEntry(value: i, label: "$i"))
+                          .toList()),
+                  DropdownMenu(
+                      initialSelection: mudCost,
+                      width: 200,
+                      onSelected: (value) =>
+                          setState(() => mudCost = value ?? 1),
+                      label: const Text("Prix de l'argile"),
+                      dropdownMenuEntries: [1, 2, 3, 4, 5]
+                          .map((i) => DropdownMenuEntry(value: i, label: "$i"))
+                          .toList()),
+                  DropdownMenu(
+                      initialSelection: stoneCost,
+                      width: 200,
+                      onSelected: (value) =>
+                          setState(() => stoneCost = value ?? 1),
+                      label: const Text("Prix de la pierre"),
+                      dropdownMenuEntries: [1, 2, 3, 4, 5]
+                          .map((i) => DropdownMenuEntry(value: i, label: "$i"))
+                          .toList()),
+                ],
+              ),
+              const SizedBox(height: 16),
+              Expanded(
+                child: SingleChildScrollView(
+                  child: Table(
+                      columnWidths: const {0: FractionColumnWidth(0.35)},
+                      children: BuildingType.values.map((e) {
+                        final prop = buildingProperties[e.index];
+                        return TableRow(
+                            decoration: BoxDecoration(
+                                border: Border.all(color: e.color(), width: 1),
+                                borderRadius:
+                                    const BorderRadius.all(Radius.circular(4)),
+                                color: e.color().withOpacity(0.8)),
+                            children: [
+                              _padded(Text(prop.name)),
+                              BuildingEffectW(prop.effect,
+                                  horizontalLayout: true, iconSize: 16),
+                              _padded(Text(
+                                "${prop.cost.wood}",
+                                textAlign: TextAlign.center,
+                              )),
+                              _padded(Text(
+                                "${prop.cost.mud}",
+                                textAlign: TextAlign.center,
+                              )),
+                              _padded(Text(
+                                "${prop.cost.stone}",
+                                textAlign: TextAlign.center,
+                              )),
+                              _padded(Text(
+                                "${prop.cost.sandCost(woodCost, mudCost, stoneCost)}",
+                                style: const TextStyle(
+                                    fontWeight: FontWeight.bold),
+                                textAlign: TextAlign.right,
+                              ))
+                            ]);
+                      }).toList()),
+                ),
+              )
+            ],
+          )),
+    );
   }
 }
