@@ -291,19 +291,26 @@ class _Buildings extends StatelessWidget {
         (i) => Column(
             children: List.generate(gridSize, (j) {
           final b = buildings[i][j];
+          const side = BorderSide(width: 1);
           return GestureDetector(
-            onTap: b == null ? null : () => onSelect(b),
+            onTap: b == null ? null : () => onSelect(b.building),
             child: Container(
                 width: gridWith / gridSize,
                 height: gridWith / gridSize,
                 decoration: BoxDecoration(
+                    border: Border(
+                      top: (b?.borderTop ?? false) ? side : BorderSide.none,
+                      right: (b?.borderRight ?? false) ? side : BorderSide.none,
+                      bottom:
+                          (b?.borderBottom ?? false) ? side : BorderSide.none,
+                      left: (b?.borderLeft ?? false) ? side : BorderSide.none,
+                    ),
                     color: b == null
                         ? null
                         : disabled
                             ? Colors.grey
-                            : b.type
-                                .color()
-                                .withOpacity(b.id == selected?.id ? 1 : 0.6))),
+                            : b.building.type.color().withOpacity(
+                                b.building.id == selected?.id ? 1 : 0.6))),
           );
         })),
       )),
@@ -421,13 +428,30 @@ class _ToPlaceBuilding extends StatelessWidget {
   }
 }
 
-typedef _MergedBuildings = List<List<Building?>>;
+class _BuildingCell {
+  final Building building;
+  final bool borderTop;
+  final bool borderRight;
+  final bool borderBottom;
+  final bool borderLeft;
+  const _BuildingCell(this.building, this.borderTop, this.borderRight,
+      this.borderBottom, this.borderLeft);
+}
+
+typedef _MergedBuildings = List<List<_BuildingCell?>>;
 
 _MergedBuildings _merge(List<Building> l, int gridSize) {
-  final out = matrix<Building?>(gridSize, null);
+  final out = matrix<_BuildingCell?>(gridSize, null);
   for (var item in l) {
     for (var square in item.squares) {
-      out[square.x][square.y] = item;
+      out[square.x][square.y] = _BuildingCell(
+        item,
+        // compute borders for each cell : disable it if it has an adjacent tile
+        !item.squares.contains(Coord(square.x, square.y - 1)),
+        !item.squares.contains(Coord(square.x + 1, square.y)),
+        !item.squares.contains(Coord(square.x, square.y + 1)),
+        !item.squares.contains(Coord(square.x - 1, square.y)),
+      );
     }
   }
   return out;
@@ -447,8 +471,16 @@ class _BuildingSummary extends StatelessWidget {
         color: building.type.color().withOpacity(0.8),
         child: Padding(
           padding: const EdgeInsets.all(8.0),
-          child: Text(buildingProperties[building.type.index].name,
-              style: Theme.of(context).textTheme.titleMedium),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(buildingProperties[building.type.index].name,
+                  style: Theme.of(context).textTheme.titleMedium),
+              const SizedBox(width: 10),
+              _BuildingEffect(buildingProperties[building.type.index].effect,
+                  horizontalLayout: true)
+            ],
+          ),
         ),
       ),
     );
@@ -512,7 +544,9 @@ class _BuildingCard extends StatelessWidget {
 
 class _BuildingEffect extends StatelessWidget {
   final BuildingEffect effect;
-  const _BuildingEffect(this.effect, {super.key});
+  final bool horizontalLayout;
+  const _BuildingEffect(this.effect,
+      {this.horizontalLayout = false, super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -537,18 +571,25 @@ class _BuildingEffect extends StatelessWidget {
         bonus = effect.defense;
         icon = "assets/shield.png";
     }
-
+    final children = [
+      SizedBox(width: 30, height: 30, child: Image.asset(icon)),
+      Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 8.0),
+        child: Text("+ $bonus"),
+      ),
+    ];
     return Card(
       child: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            SizedBox(width: 30, height: 30, child: Image.asset(icon)),
-            Text("+ $bonus"),
-          ],
-        ),
-      ),
+          padding: const EdgeInsets.all(8.0),
+          child: horizontalLayout
+              ? Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: children,
+                )
+              : Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: children,
+                )),
     );
   }
 }
