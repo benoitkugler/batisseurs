@@ -68,6 +68,15 @@ extension Bs on Shape {
     return max(maxC.x - upperLeftCell.x + 1, maxC.y - upperLeftCell.y + 1);
   }
 
+  List<List<bool>> crible<T>() {
+    final out = _matrix(
+        maxC.x - upperLeftCell.x + 1, maxC.y - upperLeftCell.y + 1, false);
+    for (var coord in this) {
+      out[coord.x][coord.y] = true;
+    }
+    return out;
+  }
+
   Shape translate(int tx, int ty) {
     return map((e) => Coord(e.x + tx, e.y + ty)).toList();
   }
@@ -130,7 +139,11 @@ extension Bs on Shape {
   }
 }
 
-List<List<T>> matrix<T>(int gridSize, T zero) {
-  return List.generate(gridSize, (index) => List<T>.filled(gridSize, zero),
+List<List<T>> _matrix<T>(int rows, int columns, T zero) {
+  return List.generate(rows, (index) => List<T>.filled(columns, zero),
       growable: false);
+}
+
+List<List<T>> matrix<T>(int gridSize, T zero) {
+  return _matrix(gridSize, gridSize, zero);
 }
