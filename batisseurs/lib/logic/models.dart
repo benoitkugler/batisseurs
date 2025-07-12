@@ -108,8 +108,9 @@ class TeamExt {
   }
 
   /// [stats] sum the bonus of each building
+  /// Note that each team has a defaut stock of 2
   Stats stats() {
-    final out = Stats();
+    final out = Stats(stock: 2);
     for (var building in buildings) {
       final i = building.type.index;
       buildingProperties[i].effect.apply(out);
@@ -213,7 +214,7 @@ class ReserveEffect implements BuildingEffect {
 }
 
 /// each victory add this and remove to the other team
-const militaryAttackPoint = 3;
+const militaryAttackPoint = 2;
 
 /// [scores] compute the end game score for each team,
 /// taking into accout military success and victory points.
