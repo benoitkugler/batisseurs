@@ -7,13 +7,30 @@ class Game {
   final int gridSize;
   final int duplicatedBuildings;
   final int themeIndex;
+  final BuildingCost sandCost; // currently set up
 
   const Game({
     required this.id,
     required this.gridSize,
     required this.duplicatedBuildings,
     required this.themeIndex,
+    required this.sandCost,
   });
+
+  Game copyWith({
+    int? id,
+    int? gridSize,
+    int? duplicatedBuildings,
+    int? themeIndex,
+    BuildingCost? sandCost,
+  }) =>
+      Game(
+        id: id ?? this.id,
+        gridSize: gridSize ?? this.gridSize,
+        duplicatedBuildings: duplicatedBuildings ?? this.duplicatedBuildings,
+        themeIndex: themeIndex ?? this.themeIndex,
+        sandCost: sandCost ?? this.sandCost,
+      );
 }
 
 /// Team stores the advance of one group of players.
@@ -28,6 +45,9 @@ class Team {
   // reserve
   final int stock;
 
+  // accumulated over the game
+  final int sand;
+
   const Team({
     required this.id,
     required this.idGame,
@@ -36,6 +56,7 @@ class Team {
     required this.mud,
     required this.stone,
     required this.stock,
+    required this.sand,
   });
 
   factory Team.empty(int idGame, String name) => Team(
@@ -46,6 +67,7 @@ class Team {
         mud: 0,
         stone: 0,
         stock: 0,
+        sand: 0,
       );
 
   Team copyWith({
@@ -56,6 +78,7 @@ class Team {
     int? mud,
     int? stone,
     int? stock,
+    int? sand,
   }) {
     return Team(
       id: id ?? this.id,
@@ -65,6 +88,7 @@ class Team {
       mud: mud ?? this.mud,
       stone: stone ?? this.stone,
       stock: stock ?? this.stock,
+      sand: sand ?? this.sand,
     );
   }
 }
@@ -216,12 +240,17 @@ class ReserveEffect implements BuildingEffect {
 /// each victory add this and remove to the other team
 const militaryAttackPoint = 2;
 
+typedef Score = ({int buildings, int military, int total});
+
 /// [scores] compute the end game score for each team,
 /// taking into accout military success and victory points.
-List<int> scores(List<TeamExt> teams) {
+List<Score> scores(List<TeamExt> teams) {
   final stats = teams.map((e) => e.stats()).toList();
+
   // start with the victory points
-  final out = stats.map((e) => e.victoryPoints).toList();
+  final buildings = stats.map((e) => e.victoryPoints).toList();
+  final military = List.filled(stats.length, 0);
+
   // simulate military phase
   for (var i = 0; i < teams.length; i++) {
     for (var j = i + 1; j < teams.length; j++) {
@@ -231,11 +260,18 @@ List<int> scores(List<TeamExt> teams) {
       final ai = max(teami.attack - teamj.defense, 0);
       // j attack
       final aj = max(teamj.attack - teami.defense, 0);
-      out[i] += militaryAttackPoint * (ai - aj);
-      out[j] += militaryAttackPoint * (aj - ai);
+      military[i] += militaryAttackPoint * (ai - aj);
+      military[j] += militaryAttackPoint * (aj - ai);
     }
   }
-  return out;
+
+  return List.generate(
+      buildings.length,
+      (index) => (
+            buildings: buildings[index],
+            military: military[index],
+            total: buildings[index] + military[index]
+          ));
 }
 
 enum BuildingType {
@@ -462,6 +498,9 @@ class BuildingCost {
   final int stone;
   const BuildingCost(this.wood, this.mud, this.stone);
 
+  @override
+  String toString() => "($wood , $mud , $stone)";
+
   BuildingCost copyWith({
     int? wood,
     int? mud,
@@ -477,8 +516,8 @@ class BuildingCost {
     return this.wood <= wood && this.mud <= mud && this.stone <= stone;
   }
 
-  int sandCost(int woodCost, int mudCost, int stoneCost) {
-    return wood * woodCost + mud * mudCost + stone * stoneCost;
+  int sandCost(BuildingCost sandCost) {
+    return wood * sandCost.wood + mud * sandCost.mud + stone * sandCost.stone;
   }
 }
 

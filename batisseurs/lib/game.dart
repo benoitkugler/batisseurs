@@ -125,16 +125,24 @@ class GameScreen extends StatefulWidget {
 }
 
 class _GameScreenState extends State<GameScreen> {
+  late Game game;
   List<TeamExt> teams = [];
 
   @override
+  void didUpdateWidget(covariant GameScreen oldWidget) {
+    game = widget.game;
+    super.didUpdateWidget(oldWidget);
+  }
+
+  @override
   void initState() {
+    game = widget.game;
     _loadTeams();
     super.initState();
   }
 
   _loadTeams() async {
-    final l = await widget.db.selectTeams(widget.game.id);
+    final l = await widget.db.selectTeams(game.id);
     setState(() {
       teams = l;
     });
@@ -160,7 +168,7 @@ class _GameScreenState extends State<GameScreen> {
               .map((e) => InkWell(
                   borderRadius: const BorderRadius.all(Radius.circular(12)),
                   onTap: () => _showTeam(e),
-                  child: _TeamCard(themes[widget.game.themeIndex], e)))
+                  child: _TeamCard(themes[game.themeIndex], e)))
               .toList()),
     );
   }
@@ -182,7 +190,7 @@ class _GameScreenState extends State<GameScreen> {
             ));
 
     if (confirm ?? false) {
-      await widget.db.removeGame(widget.game.id);
+      await widget.db.removeGame(game.id);
       if (!mounted) return;
 
       Navigator.of(context).pop();
@@ -197,14 +205,26 @@ class _GameScreenState extends State<GameScreen> {
 
   _showTeam(TeamExt team) async {
     await Navigator.of(context).push(MaterialPageRoute(
-        builder: (context) => _TeamDetails(widget.db, widget.game, team)));
+        builder: (context) => _TeamDetails(widget.db, game, team)));
 
     _loadTeams();
   }
 
   _showBuildingsCost() async {
-    await Navigator.of(context).push(MaterialPageRoute(
-        builder: (context) => _BuildingsCost(themes[widget.game.themeIndex])));
+    final newCosts = await Navigator.of(context).push(
+        MaterialPageRoute<BuildingCost>(
+            builder: (context) =>
+                _BuildingsCost(themes[game.themeIndex], game.sandCost)));
+    if (newCosts == null) return;
+
+    final newGame = game.copyWith(sandCost: newCosts);
+    await widget.db.updateGame(newGame);
+    if (!mounted) return;
+
+    setState(() => game = newGame);
+    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Text("Coûts modifiés avec succès."),
+        backgroundColor: Colors.green));
   }
 }
 
@@ -312,6 +332,12 @@ class __TeamDetailsState extends State<_TeamDetails> {
   late TeamExt team;
 
   @override
+  void didUpdateWidget(covariant _TeamDetails oldWidget) {
+    team = widget.team;
+    super.didUpdateWidget(oldWidget);
+  }
+
+  @override
   void initState() {
     team = widget.team;
     super.initState();
@@ -410,7 +436,10 @@ class __TeamDetailsState extends State<_TeamDetails> {
   }
 
   _addWood() async {
-    final t = team.team.copyWith(wood: team.team.wood + 1);
+    final t = team.team.copyWith(
+      wood: team.team.wood + 1,
+      sand: team.team.sand + widget.game.sandCost.wood,
+    );
     await widget.db.updateTeam(t);
     setState(() {
       team = team.copyWith(team: t);
@@ -418,7 +447,10 @@ class __TeamDetailsState extends State<_TeamDetails> {
   }
 
   _addMud() async {
-    final t = team.team.copyWith(mud: team.team.mud + 1);
+    final t = team.team.copyWith(
+      mud: team.team.mud + 1,
+      sand: team.team.sand + widget.game.sandCost.mud,
+    );
     await widget.db.updateTeam(t);
     setState(() {
       team = team.copyWith(team: t);
@@ -426,7 +458,10 @@ class __TeamDetailsState extends State<_TeamDetails> {
   }
 
   _addStone() async {
-    final t = team.team.copyWith(stone: team.team.stone + 1);
+    final t = team.team.copyWith(
+      stone: team.team.stone + 1,
+      sand: team.team.sand + widget.game.sandCost.stone,
+    );
     await widget.db.updateTeam(t);
     setState(() {
       team = team.copyWith(team: t);
@@ -695,7 +730,7 @@ class _ResourceField extends StatelessWidget {
 
 class _RankingsDialog extends StatelessWidget {
   final List<TeamExt> teams;
-  final List<int> scores;
+  final List<Score> scores;
 
   const _RankingsDialog(this.teams, this.scores);
 
@@ -703,26 +738,75 @@ class _RankingsDialog extends StatelessWidget {
   Widget build(BuildContext context) {
     final sorted = List.generate(
         teams.length, (index) => MapEntry(teams[index], scores[index]));
-    sorted.sort((a, b) => -a.value + b.value);
+    sorted.sort((a, b) => -a.value.total + b.value.total);
     return AlertDialog(
         title: const Text("Classement"),
         content: SizedBox(
           width: double.maxFinite,
-          child: ListView(
+          child: Table(
+            columnWidths: const {
+              1: FixedColumnWidth(50),
+              2: FixedColumnWidth(50),
+              3: FixedColumnWidth(50),
+              4: FixedColumnWidth(50),
+            },
             children: [
-              ListTile(
-                trailing: SizedBox(
-                    width: 30,
-                    height: 30,
-                    child: Image.asset("assets/victory.png")),
-              ),
-              ...sorted.map((e) => ListTile(
-                    title: Text(e.key.team.name),
-                    trailing: Text(
-                      "${e.value}",
-                      style: Theme.of(context).textTheme.titleMedium,
+              TableRow(children: [
+                const SizedBox(height: 40),
+                SizedBox(
+                  width: 30,
+                  height: 30,
+                  child: Image.asset("assets/sand.png"),
+                ),
+                SizedBox(
+                  width: 30,
+                  height: 30,
+                  child: Image.asset("assets/reserve.png"),
+                ),
+                SizedBox(
+                  width: 30,
+                  height: 30,
+                  child: Image.asset("assets/swords.png"),
+                ),
+                SizedBox(
+                  width: 30,
+                  height: 30,
+                  child: Image.asset("assets/victory.png"),
+                ),
+              ]),
+              ...sorted.map(
+                (e) => TableRow(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(4.0),
+                      child: Text(e.key.team.name),
                     ),
-                  ))
+                    Text(
+                      "${e.key.team.sand}",
+                      style: Theme.of(context).textTheme.titleMedium,
+                      textAlign: TextAlign.center,
+                    ),
+                    Text(
+                      "${e.value.buildings}",
+                      style: Theme.of(context).textTheme.titleMedium,
+                      textAlign: TextAlign.center,
+                    ),
+                    Text(
+                      "${e.value.military}",
+                      style: Theme.of(context).textTheme.titleMedium,
+                      textAlign: TextAlign.center,
+                    ),
+                    Text(
+                      "${e.value.total}",
+                      style: Theme.of(context)
+                          .textTheme
+                          .titleMedium
+                          ?.copyWith(fontWeight: FontWeight.bold),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                ),
+              )
             ],
           ),
         ));
@@ -731,7 +815,8 @@ class _RankingsDialog extends StatelessWidget {
 
 class _BuildingsCost extends StatefulWidget {
   final GameTheme theme;
-  const _BuildingsCost(this.theme);
+  final BuildingCost initialCost;
+  const _BuildingsCost(this.theme, this.initialCost);
 
   @override
   State<_BuildingsCost> createState() => __BuildingsCostState();
@@ -745,14 +830,38 @@ TableCell _padded(Widget w) => TableCell(
     ));
 
 class __BuildingsCostState extends State<_BuildingsCost> {
-  int woodCost = 1;
-  int mudCost = 2;
-  int stoneCost = 3;
+  BuildingCost cost = const BuildingCost(0, 0, 0);
+
+  @override
+  void initState() {
+    cost = widget.initialCost;
+    super.initState();
+  }
+
+  @override
+  void didUpdateWidget(covariant _BuildingsCost oldWidget) {
+    cost = widget.initialCost;
+    super.didUpdateWidget(oldWidget);
+  }
+
+  bool get hasCostChanged =>
+      cost.wood != widget.initialCost.wood ||
+      cost.mud != widget.initialCost.mud ||
+      cost.stone != widget.initialCost.stone;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        actions: [
+          TextButton(
+              onPressed: hasCostChanged
+                  ? () {
+                      Navigator.of(context).pop(cost);
+                    }
+                  : null,
+              child: const Text("Enregistrer les coûts"))
+        ],
         title: const Text("Coût des bâtiments"),
       ),
       body: Padding(
@@ -763,28 +872,28 @@ class __BuildingsCostState extends State<_BuildingsCost> {
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
                   DropdownMenu(
-                      initialSelection: woodCost,
+                      initialSelection: cost.wood,
                       width: 200,
-                      onSelected: (value) =>
-                          setState(() => woodCost = value ?? 1),
+                      onSelected: (value) => setState(
+                          () => cost = cost.copyWith(wood: value ?? 1)),
                       label: Text("Prix : ${widget.theme.r1.name}"),
                       dropdownMenuEntries: [1, 2, 3, 4, 5]
                           .map((i) => DropdownMenuEntry(value: i, label: "$i"))
                           .toList()),
                   DropdownMenu(
-                      initialSelection: mudCost,
+                      initialSelection: cost.mud,
                       width: 200,
                       onSelected: (value) =>
-                          setState(() => mudCost = value ?? 1),
+                          setState(() => cost = cost.copyWith(mud: value ?? 1)),
                       label: Text("Prix : ${widget.theme.r2.name}"),
                       dropdownMenuEntries: [1, 2, 3, 4, 5]
                           .map((i) => DropdownMenuEntry(value: i, label: "$i"))
                           .toList()),
                   DropdownMenu(
-                      initialSelection: stoneCost,
+                      initialSelection: cost.stone,
                       width: 200,
-                      onSelected: (value) =>
-                          setState(() => stoneCost = value ?? 1),
+                      onSelected: (value) => setState(
+                          () => cost = cost.copyWith(stone: value ?? 1)),
                       label: Text("Prix : ${widget.theme.r3.name}"),
                       dropdownMenuEntries: [1, 2, 3, 4, 5]
                           .map((i) => DropdownMenuEntry(value: i, label: "$i"))
@@ -822,7 +931,7 @@ class __BuildingsCostState extends State<_BuildingsCost> {
                                 textAlign: TextAlign.center,
                               )),
                               _padded(Text(
-                                "${prop.cost.sandCost(woodCost, mudCost, stoneCost)}",
+                                "${prop.cost.sandCost(cost)}",
                                 style: const TextStyle(
                                     fontWeight: FontWeight.bold),
                                 textAlign: TextAlign.right,

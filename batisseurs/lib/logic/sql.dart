@@ -13,7 +13,10 @@ const _createSQLStatements = [
     id INTEGER PRIMARY KEY,
     gridSize INTEGER NOT NULL,
     duplicatedBuildings INTEGER NOT NULL,
-    themeIndex INTEGER NOT NULL
+    themeIndex INTEGER NOT NULL,
+    woodCost INTEGER NOT NULL,
+    mudCost INTEGER NOT NULL,
+    stoneCost INTEGER NOT NULL
   );
   """,
   """
@@ -25,6 +28,7 @@ const _createSQLStatements = [
     mud INTEGER NOT NULL,
     stone INTEGER NOT NULL,
     stock INTEGER NOT NULL,
+    sand INTEGER NOT NULL,
     FOREIGN KEY(idGame) REFERENCES games(id) ON DELETE CASCADE
   );
   """,
@@ -65,6 +69,11 @@ extension G on Game {
       gridSize: map["gridSize"],
       duplicatedBuildings: map["duplicatedBuildings"],
       themeIndex: map["themeIndex"],
+      sandCost: BuildingCost(
+        map["woodCost"],
+        map["mudCost"],
+        map["stoneCost"],
+      ),
     );
   }
 
@@ -73,6 +82,9 @@ extension G on Game {
       "gridSize": gridSize,
       "duplicatedBuildings": duplicatedBuildings,
       "themeIndex": themeIndex,
+      "woodCost": sandCost.wood,
+      "mudCost": sandCost.mud,
+      "stoneCost": sandCost.stone,
     };
     if (!ignoreID) {
       out["id"] = id;
@@ -91,6 +103,7 @@ extension T on Team {
       mud: map["mud"],
       stone: map["stone"],
       stock: map["stock"],
+      sand: map["sand"],
     );
   }
 
@@ -102,6 +115,7 @@ extension T on Team {
       "mud": mud,
       "stone": stone,
       "stock": stock,
+      "sand": sand,
     };
     if (!ignoreID) {
       out["id"] = id;
@@ -199,26 +213,27 @@ class DBApi {
   Future<Game> createGame(GameConfig config) async {
     final theme = themes[config.themeIndex];
     final teamNames = theme.pickTeamNames(config.nbTeams);
-    final idGame = await db.insert(
-        "games",
-        Game(
-          id: 0,
-          gridSize: config.gridSize,
-          duplicatedBuildings: config.duplicatedBuildings,
-          themeIndex: config.themeIndex,
-        ).toSQLMap(true));
+    final newGame = Game(
+      id: 0,
+      gridSize: config.gridSize,
+      duplicatedBuildings: config.duplicatedBuildings,
+      themeIndex: config.themeIndex,
+      sandCost: const BuildingCost(1, 2, 3),
+    );
+
+    final idGame = await db.insert("games", newGame.toSQLMap(true));
 
     final batch = db.batch();
     for (var name in teamNames) {
       batch.insert("teams", Team.empty(idGame, name).toSQLMap(true));
     }
     batch.commit();
-    return Game(
-      id: idGame,
-      gridSize: config.gridSize,
-      duplicatedBuildings: config.duplicatedBuildings,
-      themeIndex: config.themeIndex,
-    );
+    return newGame.copyWith(id: idGame);
+  }
+
+  Future<void> updateGame(Game game) async {
+    await db.update("games", game.toSQLMap(false),
+        where: "id = ?", whereArgs: [game.id]);
   }
 
   Future<List<TeamExt>> selectTeams(int idGame) async {
