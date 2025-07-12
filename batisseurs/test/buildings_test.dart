@@ -1,4 +1,5 @@
 import 'package:batisseurs/logic/export_costs.dart';
+import 'package:batisseurs/logic/theme.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
@@ -11,6 +12,7 @@ Future main() async {
     databaseFactory = databaseFactoryFfi;
   });
   test('Export buildings', () async {
-    exportBuildingCosts();
+    exportBuildingCosts(themeMedieval);
+    exportBuildingCosts(themeMaritime);
   });
 }

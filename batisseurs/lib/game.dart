@@ -2,34 +2,8 @@ import 'package:batisseurs/grid.dart';
 import 'package:batisseurs/logic/grid.dart';
 import 'package:batisseurs/logic/models.dart';
 import 'package:batisseurs/logic/sql.dart';
+import 'package:batisseurs/logic/theme.dart';
 import 'package:flutter/material.dart';
-
-const _civilizations = [
-  "Romains",
-  "Byzantins",
-  "Egyptiens",
-  "Grecs",
-  "Gaulois",
-  "Germains",
-  "Breutons",
-  "Perses",
-];
-
-List<String> pickTeamNames(int nbTeams) {
-  final l = _civilizations.map((e) => e).toList();
-  l.shuffle();
-  return l.sublist(0, nbTeams);
-}
-
-class GameConfig {
-  final int nbTeams;
-  final int gridSize;
-
-  /// [duplicatedBuildings] >= 1
-  final int duplicatedBuildings;
-
-  GameConfig(this.nbTeams, this.gridSize, this.duplicatedBuildings);
-}
 
 /// proposed number of teams goes from 1 to [maxNbTeam]
 const maxNbTeam = 7;
@@ -46,6 +20,7 @@ class GameConfigDialog extends StatefulWidget {
 }
 
 class _GameConfigDialogState extends State<GameConfigDialog> {
+  int themeIndex = 0;
   int nbTeams = 3;
   int gridSize = 10;
   int duplicatedBuildings = 1;
@@ -59,6 +34,18 @@ class _GameConfigDialogState extends State<GameConfigDialog> {
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8.0),
+            child: Text("Thème", style: headerStyle),
+          ),
+          SegmentedButton<int>(
+            segments: [
+              ButtonSegment(value: 0, label: Text(themes[0].name)),
+              ButtonSegment(value: 1, label: Text(themes[1].name)),
+            ],
+            selected: {themeIndex},
+            onSelectionChanged: (p0) => setState(() => themeIndex = p0.first),
+          ),
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 8.0),
             child: Text("Nombre d'équipes", style: headerStyle),
@@ -120,8 +107,8 @@ class _GameConfigDialogState extends State<GameConfigDialog> {
       ),
       actions: [
         ElevatedButton(
-            onPressed: () => widget
-                .launch(GameConfig(nbTeams, gridSize, duplicatedBuildings)),
+            onPressed: () => widget.launch(
+                GameConfig(themeIndex, nbTeams, gridSize, duplicatedBuildings)),
             child: const Text("Démarrer"))
       ],
     );
@@ -173,7 +160,7 @@ class _GameScreenState extends State<GameScreen> {
               .map((e) => InkWell(
                   borderRadius: const BorderRadius.all(Radius.circular(12)),
                   onTap: () => _showTeam(e),
-                  child: _TeamCard(e)))
+                  child: _TeamCard(themes[widget.game.themeIndex], e)))
               .toList()),
     );
   }
@@ -216,14 +203,15 @@ class _GameScreenState extends State<GameScreen> {
   }
 
   _showBuildingsCost() async {
-    await Navigator.of(context)
-        .push(MaterialPageRoute(builder: (context) => _BuildingsCost()));
+    await Navigator.of(context).push(MaterialPageRoute(
+        builder: (context) => _BuildingsCost(themes[widget.game.themeIndex])));
   }
 }
 
 class _TeamCard extends StatelessWidget {
+  final GameTheme theme;
   final TeamExt team;
-  const _TeamCard(this.team, {super.key});
+  const _TeamCard(this.theme, this.team);
 
   @override
   Widget build(BuildContext context) {
@@ -246,9 +234,9 @@ class _TeamCard extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              ResourceIcon(Image.asset("assets/wood.png"), team.team.wood),
-              ResourceIcon(Image.asset("assets/mud.png"), team.team.mud),
-              ResourceIcon(Image.asset("assets/stone.png"), team.team.stone),
+              ResourceIcon(Image.asset(theme.r1.path), team.team.wood),
+              ResourceIcon(Image.asset(theme.r2.path), team.team.mud),
+              ResourceIcon(Image.asset(theme.r3.path), team.team.stone),
               Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: Text(
@@ -295,7 +283,7 @@ class _TeamCard extends StatelessWidget {
 class _ReapeatIcon extends StatelessWidget {
   final Image icon;
   final int nbRepeat;
-  const _ReapeatIcon(this.icon, this.nbRepeat, {super.key});
+  const _ReapeatIcon(this.icon, this.nbRepeat);
 
   @override
   Widget build(BuildContext context) {
@@ -314,7 +302,7 @@ class _TeamDetails extends StatefulWidget {
   final Game game;
   final TeamExt team;
 
-  const _TeamDetails(this.db, this.game, this.team, {super.key});
+  const _TeamDetails(this.db, this.game, this.team);
 
   @override
   State<_TeamDetails> createState() => __TeamDetailsState();
@@ -328,6 +316,8 @@ class __TeamDetailsState extends State<_TeamDetails> {
     team = widget.team;
     super.initState();
   }
+
+  GameTheme get theme => themes[widget.game.themeIndex];
 
   @override
   Widget build(BuildContext context) {
@@ -346,11 +336,11 @@ class __TeamDetailsState extends State<_TeamDetails> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               _ResourceButton(
-                  Image.asset("assets/wood.png"), team.team.wood, _addWood),
+                  Image.asset(theme.r1.path), team.team.wood, _addWood),
               _ResourceButton(
-                  Image.asset("assets/mud.png"), team.team.mud, _addMud),
+                  Image.asset(theme.r2.path), team.team.mud, _addMud),
               _ResourceButton(
-                  Image.asset("assets/stone.png"), team.team.stone, _addStone),
+                  Image.asset(theme.r3.path), team.team.stone, _addStone),
               _ReserveButton(team.team.stock, team.stats().stock, _changeStock),
             ],
           ),
@@ -367,7 +357,7 @@ class __TeamDetailsState extends State<_TeamDetails> {
     if (!mounted) return;
     await showDialog(
         context: context,
-        builder: (context) => _TradeDialog(team.team, teams, _doTrade));
+        builder: (context) => _TradeDialog(theme, team.team, teams, _doTrade));
   }
 
   _doTrade(Team otherTeam, BuildingCost toGive, BuildingCost toReceive) async {
@@ -456,7 +446,7 @@ class _ResourceButton extends StatelessWidget {
   final Image image;
   final int amount;
   final void Function() onAdd;
-  const _ResourceButton(this.image, this.amount, this.onAdd, {super.key});
+  const _ResourceButton(this.image, this.amount, this.onAdd);
 
   @override
   Widget build(BuildContext context) {
@@ -487,7 +477,7 @@ class _ReserveButton extends StatelessWidget {
   final int max;
   final void Function(int) onChange;
 
-  const _ReserveButton(this.current, this.max, this.onChange, {super.key});
+  const _ReserveButton(this.current, this.max, this.onChange);
 
   @override
   Widget build(BuildContext context) {
@@ -527,13 +517,14 @@ class _ReserveButton extends StatelessWidget {
 }
 
 class _TradeDialog extends StatefulWidget {
+  final GameTheme theme;
   final Team team;
   final List<TeamExt> allTeams;
 
   final void Function(
       Team otherTeam, BuildingCost toGive, BuildingCost toReceive) onTrade;
 
-  const _TradeDialog(this.team, this.allTeams, this.onTrade, {super.key});
+  const _TradeDialog(this.theme, this.team, this.allTeams, this.onTrade);
 
   @override
   State<_TradeDialog> createState() => __TradeDialogState();
@@ -583,21 +574,21 @@ class __TradeDialogState extends State<_TradeDialog> {
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
               _ResourceField(
-                  Image.asset("assets/wood.png"),
+                  Image.asset(widget.theme.r1.path),
                   _IntegerInput(
                       toGive.wood,
                       (v) => setState(() {
                             toGive = toGive.copyWith(wood: v);
                           }))),
               _ResourceField(
-                  Image.asset("assets/mud.png"),
+                  Image.asset(widget.theme.r2.path),
                   _IntegerInput(
                       toGive.mud,
                       (v) => setState(() {
                             toGive = toGive.copyWith(mud: v);
                           }))),
               _ResourceField(
-                  Image.asset("assets/stone.png"),
+                  Image.asset(widget.theme.r3.path),
                   _IntegerInput(
                       toGive.stone,
                       (v) => setState(() {
@@ -613,21 +604,21 @@ class __TradeDialogState extends State<_TradeDialog> {
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
               _ResourceField(
-                  Image.asset("assets/wood.png"),
+                  Image.asset(widget.theme.r1.path),
                   _IntegerInput(
                       toReceive.wood,
                       (v) => setState(() {
                             toReceive = toReceive.copyWith(wood: v);
                           }))),
               _ResourceField(
-                  Image.asset("assets/mud.png"),
+                  Image.asset(widget.theme.r2.path),
                   _IntegerInput(
                       toReceive.mud,
                       (v) => setState(() {
                             toReceive = toReceive.copyWith(mud: v);
                           }))),
               _ResourceField(
-                  Image.asset("assets/stone.png"),
+                  Image.asset(widget.theme.r3.path),
                   _IntegerInput(
                       toReceive.stone,
                       (v) => setState(() {
@@ -649,7 +640,7 @@ class __TradeDialogState extends State<_TradeDialog> {
 class _IntegerInput extends StatelessWidget {
   final int value;
   final void Function(int) onChange;
-  const _IntegerInput(this.value, this.onChange, {super.key});
+  const _IntegerInput(this.value, this.onChange);
 
   @override
   Widget build(BuildContext context) {
@@ -685,7 +676,7 @@ class _ResourceField extends StatelessWidget {
   final Image image;
   final Widget field;
 
-  const _ResourceField(this.image, this.field, {super.key});
+  const _ResourceField(this.image, this.field);
 
   @override
   Widget build(BuildContext context) {
@@ -706,7 +697,7 @@ class _RankingsDialog extends StatelessWidget {
   final List<TeamExt> teams;
   final List<int> scores;
 
-  const _RankingsDialog(this.teams, this.scores, {super.key});
+  const _RankingsDialog(this.teams, this.scores);
 
   @override
   Widget build(BuildContext context) {
@@ -739,7 +730,8 @@ class _RankingsDialog extends StatelessWidget {
 }
 
 class _BuildingsCost extends StatefulWidget {
-  const _BuildingsCost({super.key});
+  final GameTheme theme;
+  const _BuildingsCost(this.theme);
 
   @override
   State<_BuildingsCost> createState() => __BuildingsCostState();
@@ -775,7 +767,7 @@ class __BuildingsCostState extends State<_BuildingsCost> {
                       width: 200,
                       onSelected: (value) =>
                           setState(() => woodCost = value ?? 1),
-                      label: const Text("Prix du bois"),
+                      label: Text("Prix : ${widget.theme.r1.name}"),
                       dropdownMenuEntries: [1, 2, 3, 4, 5]
                           .map((i) => DropdownMenuEntry(value: i, label: "$i"))
                           .toList()),
@@ -784,7 +776,7 @@ class __BuildingsCostState extends State<_BuildingsCost> {
                       width: 200,
                       onSelected: (value) =>
                           setState(() => mudCost = value ?? 1),
-                      label: const Text("Prix de l'argile"),
+                      label: Text("Prix : ${widget.theme.r2.name}"),
                       dropdownMenuEntries: [1, 2, 3, 4, 5]
                           .map((i) => DropdownMenuEntry(value: i, label: "$i"))
                           .toList()),
@@ -793,7 +785,7 @@ class __BuildingsCostState extends State<_BuildingsCost> {
                       width: 200,
                       onSelected: (value) =>
                           setState(() => stoneCost = value ?? 1),
-                      label: const Text("Prix de la pierre"),
+                      label: Text("Prix : ${widget.theme.r3.name}"),
                       dropdownMenuEntries: [1, 2, 3, 4, 5]
                           .map((i) => DropdownMenuEntry(value: i, label: "$i"))
                           .toList()),
@@ -811,9 +803,10 @@ class __BuildingsCostState extends State<_BuildingsCost> {
                                 border: Border.all(color: e.color(), width: 1),
                                 borderRadius:
                                     const BorderRadius.all(Radius.circular(4)),
-                                color: e.color().withOpacity(0.8)),
+                                color: e.color().withValues(alpha: 0.8)),
                             children: [
-                              _padded(Text(prop.name)),
+                              _padded(
+                                  Text(widget.theme.buildingNames[e.index])),
                               BuildingEffectW(prop.effect,
                                   horizontalLayout: true, iconSize: 16),
                               _padded(Text(

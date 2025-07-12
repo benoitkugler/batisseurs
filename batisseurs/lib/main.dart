@@ -31,7 +31,7 @@ void main() {
 }
 
 class _App extends StatelessWidget {
-  const _App({super.key});
+  const _App();
 
   // This widget is the root of your application.
   @override
@@ -53,7 +53,7 @@ class _App extends StatelessWidget {
 }
 
 class _Loader extends StatefulWidget {
-  const _Loader({super.key});
+  const _Loader();
 
   @override
   State<_Loader> createState() => _LoaderState();
@@ -105,8 +105,7 @@ class _LoaderState extends State<_Loader> {
             GameConfigDialog((conf) => Navigator.of(context).pop(conf)));
     if (conf == null) return;
 
-    final newGame = await db!.createGame(
-        conf.gridSize, conf.duplicatedBuildings, pickTeamNames(conf.nbTeams));
+    final newGame = await db!.createGame(conf);
     if (!mounted) return;
 
     setState(() {
@@ -121,7 +120,7 @@ class _Home extends StatelessWidget {
   final Game? game;
   final void Function() onLaunch;
 
-  const _Home(this.game, this.onLaunch, {super.key});
+  const _Home(this.game, this.onLaunch);
 
   @override
   Widget build(BuildContext context) {
@@ -163,7 +162,7 @@ class _Home extends StatelessWidget {
 }
 
 class _Grid extends StatefulWidget {
-  const _Grid({super.key});
+  const _Grid();
 
   @override
   State<_Grid> createState() => __GridState();

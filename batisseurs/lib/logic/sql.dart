@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:batisseurs/logic/grid.dart';
 import 'package:batisseurs/logic/models.dart';
+import 'package:batisseurs/logic/theme.dart';
 import 'package:flutter/widgets.dart';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
@@ -11,7 +12,8 @@ const _createSQLStatements = [
   CREATE TABLE games(
     id INTEGER PRIMARY KEY,
     gridSize INTEGER NOT NULL,
-    duplicatedBuildings INTEGER NOT NULL
+    duplicatedBuildings INTEGER NOT NULL,
+    themeIndex INTEGER NOT NULL
   );
   """,
   """
@@ -59,15 +61,18 @@ extension Bs on Shape {
 extension G on Game {
   static Game fromSQLMap(Map<String, dynamic> map) {
     return Game(
-        id: map["id"],
-        gridSize: map["gridSize"],
-        duplicatedBuildings: map["duplicatedBuildings"]);
+      id: map["id"],
+      gridSize: map["gridSize"],
+      duplicatedBuildings: map["duplicatedBuildings"],
+      themeIndex: map["themeIndex"],
+    );
   }
 
   Map<String, dynamic> toSQLMap(bool ignoreID) {
     final out = {
       "gridSize": gridSize,
       "duplicatedBuildings": duplicatedBuildings,
+      "themeIndex": themeIndex,
     };
     if (!ignoreID) {
       out["id"] = id;
@@ -191,15 +196,17 @@ class DBApi {
     return G.fromSQLMap(l.first);
   }
 
-  Future<Game> createGame(
-      int gridSize, int duplicatedBuildings, List<String> teamNames) async {
+  Future<Game> createGame(GameConfig config) async {
+    final theme = themes[config.themeIndex];
+    final teamNames = theme.pickTeamNames(config.nbTeams);
     final idGame = await db.insert(
         "games",
         Game(
-                id: 0,
-                gridSize: gridSize,
-                duplicatedBuildings: duplicatedBuildings)
-            .toSQLMap(true));
+          id: 0,
+          gridSize: config.gridSize,
+          duplicatedBuildings: config.duplicatedBuildings,
+          themeIndex: config.themeIndex,
+        ).toSQLMap(true));
 
     final batch = db.batch();
     for (var name in teamNames) {
@@ -207,9 +214,11 @@ class DBApi {
     }
     batch.commit();
     return Game(
-        id: idGame,
-        gridSize: gridSize,
-        duplicatedBuildings: duplicatedBuildings);
+      id: idGame,
+      gridSize: config.gridSize,
+      duplicatedBuildings: config.duplicatedBuildings,
+      themeIndex: config.themeIndex,
+    );
   }
 
   Future<List<TeamExt>> selectTeams(int idGame) async {

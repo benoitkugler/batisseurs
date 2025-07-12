@@ -1,5 +1,6 @@
 import 'package:batisseurs/logic/grid.dart';
 import 'package:batisseurs/logic/models.dart';
+import 'package:batisseurs/logic/theme.dart';
 import 'package:flutter/material.dart';
 
 extension Bt on BuildingType {
@@ -138,7 +139,9 @@ class _TeamGridState extends State<TeamGrid> {
               ]);
             }),
           ),
-          if (selected != null) _BuildingSummary(selected!, _confirmDelete),
+          if (selected != null)
+            _BuildingSummary(
+                themes[widget.game.themeIndex], selected!, _confirmDelete),
         ],
       ),
     );
@@ -188,7 +191,11 @@ class _TeamGridState extends State<TeamGrid> {
                     prop.cost.isSatisfied(t.wood, t.mud, t.stone);
                 final isDupOK = (currentBuildings[e] ?? 0) + 1 <=
                     widget.game.duplicatedBuildings;
-                return _BuildingCard(e, prop, hasResources && isDupOK,
+                return _BuildingCard(
+                    themes[widget.game.themeIndex],
+                    e,
+                    prop,
+                    hasResources && isDupOK,
                     () => Navigator.of(context).pop(e));
               }),
         ),
@@ -241,7 +248,7 @@ class _GridBackground extends StatelessWidget {
   final double gridWith;
   final int gridSize;
   final Color color;
-  const _GridBackground(this.gridWith, this.gridSize, this.color, {super.key});
+  const _GridBackground(this.gridWith, this.gridSize, this.color);
 
   @override
   Widget build(BuildContext context) {
@@ -277,8 +284,7 @@ class _Buildings extends StatelessWidget {
   final void Function(Building) onSelect;
 
   const _Buildings(this.gridWith, this.gridSize, this.buildings, this.disabled,
-      this.selected, this.onSelect,
-      {super.key});
+      this.selected, this.onSelect);
 
   @override
   Widget build(BuildContext context) {
@@ -309,8 +315,9 @@ class _Buildings extends StatelessWidget {
                         ? null
                         : disabled
                             ? Colors.grey
-                            : b.building.type.color().withOpacity(
-                                b.building.id == selected?.id ? 1 : 0.6))),
+                            : b.building.type.color().withValues(
+                                alpha:
+                                    b.building.id == selected?.id ? 1 : 0.6))),
           );
         })),
       )),
@@ -326,8 +333,7 @@ class _FitBuilding extends StatelessWidget {
   final Color color;
 
   const _FitBuilding(
-      this.cellSize, this.shape, this.border, this.shadow, this.color,
-      {super.key});
+      this.cellSize, this.shape, this.border, this.shadow, this.color);
 
   @override
   Widget build(BuildContext context) {
@@ -382,8 +388,7 @@ class _ToPlaceBuilding extends StatelessWidget {
   final void Function() onRotate; // the new shape
 
   const _ToPlaceBuilding(this.gridWidth, this.gridSize, this.shape, this.onMove,
-      this.onDrop, this.onRotate,
-      {super.key});
+      this.onDrop, this.onRotate);
 
   @override
   Widget build(BuildContext context) {
@@ -458,23 +463,24 @@ _MergedBuildings _merge(List<Building> l, int gridSize) {
 }
 
 class _BuildingSummary extends StatelessWidget {
+  final GameTheme theme;
   final Building building;
   final void Function() onDelete;
 
-  const _BuildingSummary(this.building, this.onDelete, {super.key});
+  const _BuildingSummary(this.theme, this.building, this.onDelete);
 
   @override
   Widget build(BuildContext context) {
     return InkWell(
       onLongPress: onDelete,
       child: Card(
-        color: building.type.color().withOpacity(0.8),
+        color: building.type.color().withValues(alpha: 0.8),
         child: Padding(
           padding: const EdgeInsets.all(8.0),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(buildingProperties[building.type.index].name,
+              Text(theme.buildingNames[building.type.index],
                   style: Theme.of(context).textTheme.titleMedium),
               const SizedBox(width: 10),
               BuildingEffectW(buildingProperties[building.type.index].effect,
@@ -488,23 +494,24 @@ class _BuildingSummary extends StatelessWidget {
 }
 
 class _BuildingCard extends StatelessWidget {
+  final GameTheme theme;
   final BuildingType type;
   final BuildingProperties prop;
   final bool enabled;
   final void Function() onTap;
 
-  const _BuildingCard(this.type, this.prop, this.enabled, this.onTap,
-      {super.key});
+  const _BuildingCard(
+      this.theme, this.type, this.prop, this.enabled, this.onTap);
 
   @override
   Widget build(BuildContext context) {
     return InkWell(
       borderRadius: const BorderRadius.all(Radius.circular(12)),
       splashColor: type.color(),
-      hoverColor: type.color().withOpacity(0.5),
+      hoverColor: type.color().withValues(alpha: 0.5),
       onTap: enabled ? onTap : null,
       child: Card(
-        color: type.color().withOpacity(enabled ? 0.5 : 0.2),
+        color: type.color().withValues(alpha: enabled ? 0.5 : 0.2),
         child: Padding(
           padding: const EdgeInsets.all(8.0),
           child: Row(
@@ -514,20 +521,16 @@ class _BuildingCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    prop.name,
+                    theme.buildingNames[type.index],
                     style: Theme.of(context).textTheme.titleMedium!.copyWith(
                         color: enabled ? Colors.black : Colors.black38),
                   ),
                   Row(mainAxisSize: MainAxisSize.min, children: [
-                    ResourceIcon(
-                      Image.asset("assets/wood.png"),
-                      prop.cost.wood,
-                      size: 25,
-                    ),
-                    ResourceIcon(Image.asset("assets/mud.png"), prop.cost.mud,
+                    ResourceIcon(Image.asset(theme.r1.path), prop.cost.wood,
                         size: 25),
-                    ResourceIcon(
-                        Image.asset("assets/stone.png"), prop.cost.stone,
+                    ResourceIcon(Image.asset(theme.r2.path), prop.cost.mud,
+                        size: 25),
+                    ResourceIcon(Image.asset(theme.r3.path), prop.cost.stone,
                         size: 25),
                   ])
                 ],

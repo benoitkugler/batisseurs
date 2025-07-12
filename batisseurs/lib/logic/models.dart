@@ -6,11 +6,13 @@ class Game {
   final int id;
   final int gridSize;
   final int duplicatedBuildings;
+  final int themeIndex;
 
   const Game({
     required this.id,
     required this.gridSize,
     required this.duplicatedBuildings,
+    required this.themeIndex,
   });
 }
 
@@ -270,153 +272,187 @@ enum BuildingType {
   campEntrainement,
 }
 
-class BuildingProperties {
-  final String name;
-  final BuildingCost cost;
-  final Shape shape;
-  final BuildingEffect effect;
-  const BuildingProperties(this.name, this.cost, this.shape, this.effect);
-}
+typedef BuildingProperties = ({
+  BuildingCost cost,
+  Shape shape,
+  BuildingEffect effect,
+});
 
 /// to keep in sync with [BuildingType] values
 const buildingProperties = <BuildingProperties>[
-  BuildingProperties("Marché", BuildingCost(3, 0, 0),
-      [Coord(0, 0), Coord(1, 0), Coord(2, 0)], VictoryPointEffect(1)),
-  BuildingProperties(
-      "Forum",
-      BuildingCost(3, 2, 2),
-      [Coord(0, 1), Coord(1, 1), Coord(1, 0), Coord(2, 0)],
-      VictoryPointEffect(3)),
-  BuildingProperties(
-      "Chambre de commerce",
-      BuildingCost(1, 3, 4),
-      [Coord(2, 2), Coord(2, 1), Coord(1, 1), Coord(0, 1), Coord(0, 0)],
-      VictoryPointEffect(6)),
-  BuildingProperties("Obélisque", BuildingCost(0, 1, 1),
-      [Coord(0, 0), Coord(1, 1), Coord(0, 1)], VictoryPointEffect(2)),
-  BuildingProperties("Statue", BuildingCost(1, 1, 1),
-      [Coord(0, 0), Coord(1, 1), Coord(1, 0)], VictoryPointEffect(2)),
-  BuildingProperties(
-      "Jardins",
-      BuildingCost(5, 1, 1),
-      [
-        Coord(0, 0),
-        Coord(1, 1),
-        Coord(1, 0),
-        Coord(0, 1),
-        Coord(2, 0),
-        Coord(2, 1)
-      ],
-      VictoryPointEffect(5)),
-  BuildingProperties(
-      "Théâtre",
-      BuildingCost(3, 0, 4),
-      [
-        Coord(0, 1),
-        Coord(0, 2),
-        Coord(2, 1),
-        Coord(0, 0),
-        Coord(1, 0),
-        Coord(2, 0)
-      ],
-      VictoryPointEffect(6)),
-  BuildingProperties("Panthéon", BuildingCost(0, 0, 1),
-      [Coord(0, 0), Coord(0, 1), Coord(1, 0)], VictoryPointEffect(1)),
-  BuildingProperties(
-      "Sénat",
-      BuildingCost(3, 2, 2),
-      [Coord(0, 0), Coord(0, 1), Coord(1, 1), Coord(2, 1)],
-      VictoryPointEffect(3)),
-  BuildingProperties(
-      "Hôtel de ville",
-      BuildingCost(5, 4, 4),
-      [Coord(0, 0), Coord(0, 1), Coord(1, 1), Coord(2, 1), Coord(2, 0)],
-      VictoryPointEffect(6)),
-  BuildingProperties("Officine", BuildingCost(2, 1, 0),
-      [Coord(0, 1), Coord(1, 1), Coord(1, 0)], VictoryPointEffect(2)),
-  BuildingProperties("Laboratoire", BuildingCost(4, 1, 1),
-      [Coord(0, 1), Coord(1, 1), Coord(0, 0)], VictoryPointEffect(2)),
-  BuildingProperties(
-      "Observatoire",
-      BuildingCost(4, 2, 1),
-      [
-        Coord(0, 1),
-        Coord(1, 1),
-        Coord(2, 1),
-        Coord(3, 1),
-        Coord(4, 1),
-        Coord(4, 0)
-      ],
-      VictoryPointEffect(5)),
-  BuildingProperties(
-      "Académie",
-      BuildingCost(1, 2, 3),
-      [
-        Coord(1, 1),
-        Coord(3, 1),
-        Coord(0, 0),
-        Coord(1, 0),
-        Coord(2, 0),
-        Coord(3, 0)
-      ],
-      VictoryPointEffect(6)),
-  BuildingProperties("Bassin argileux", BuildingCost(7, 2, 2),
-      [Coord(1, 0), Coord(0, 0)], BonusCupEffect(1)),
-  BuildingProperties("Poterie", BuildingCost(4, 1, 1),
-      [Coord(1, 1), Coord(0, 1), Coord(1, 0), Coord(2, 1)], BonusCupEffect(1)),
-  BuildingProperties(
-      "Atelier",
-      BuildingCost(8, 4, 3),
-      [
-        Coord(1, 1),
-        Coord(0, 1),
-        Coord(1, 0),
-        Coord(2, 1),
-        Coord(2, 0),
-        Coord(3, 1)
-      ],
-      BonusCupEffect(2)),
-  BuildingProperties("Ecole des arts", BuildingCost(2, 1, 3),
-      [Coord(1, 0), Coord(0, 0), Coord(2, 0)], ContremaitreEffect(1)),
-  BuildingProperties(
-      "Ecole d'architecture",
-      BuildingCost(6, 3, 4),
-      [Coord(1, 0), Coord(0, 0), Coord(2, 0), Coord(3, 0), Coord(4, 0)],
-      ContremaitreEffect(2)),
-  BuildingProperties(
-      "Réserve",
-      BuildingCost(3, 1, 0),
-      [Coord(1, 1), Coord(0, 1), Coord(0, 0), Coord(1, 0), Coord(2, 0)],
-      ReserveEffect(4)),
-  BuildingProperties("Petite tour de garde", BuildingCost(3, 1, 3),
-      [Coord(1, 0), Coord(0, 0), Coord(2, 0)], DefenseEffect(1)),
-  BuildingProperties(
-      "Grande tour de garde",
-      BuildingCost(5, 2, 0),
-      [Coord(1, 1), Coord(0, 1), Coord(2, 1), Coord(1, 0), Coord(2, 0)],
-      DefenseEffect(1)),
-  BuildingProperties(
-      "Forteresse",
-      BuildingCost(3, 2, 6),
-      [
-        Coord(1, 1),
-        Coord(0, 1),
-        Coord(2, 1),
-        Coord(2, 0),
-        Coord(0, 0),
-        Coord(3, 0),
-        Coord(3, 1)
-      ],
-      DefenseEffect(2)),
-  BuildingProperties("Armurerie", BuildingCost(3, 2, 2),
-      [Coord(1, 1), Coord(0, 1), Coord(0, 0)], AttackEffect(1)),
-  BuildingProperties("Ecurie", BuildingCost(8, 0, 0),
-      [Coord(1, 1), Coord(0, 1), Coord(0, 0), Coord(1, 0)], AttackEffect(1)),
-  BuildingProperties(
-      "Camp d'entrainement",
-      BuildingCost(5, 4, 4),
-      [Coord(1, 1), Coord(0, 1), Coord(0, 0), Coord(1, 0), Coord(2, 1)],
-      AttackEffect(2)),
+  (
+    cost: BuildingCost(3, 0, 0),
+    shape: [Coord(0, 0), Coord(1, 0), Coord(2, 0)],
+    effect: VictoryPointEffect(1)
+  ),
+  (
+    cost: BuildingCost(0, 0, 1),
+    shape: [Coord(0, 0), Coord(0, 1), Coord(1, 0)],
+    effect: VictoryPointEffect(1)
+  ),
+  (
+    cost: BuildingCost(3, 2, 0),
+    shape: [Coord(0, 1), Coord(1, 1), Coord(1, 0)],
+    effect: VictoryPointEffect(2)
+  ),
+  (
+    cost: BuildingCost(3, 1, 1),
+    shape: [Coord(0, 1), Coord(1, 1), Coord(0, 0)],
+    effect: VictoryPointEffect(2)
+  ),
+  (
+    cost: BuildingCost(0, 2, 1),
+    shape: [Coord(0, 0), Coord(1, 1), Coord(0, 1)],
+    effect: VictoryPointEffect(2)
+  ),
+  (
+    cost: BuildingCost(2, 1, 1),
+    shape: [Coord(0, 0), Coord(1, 1), Coord(1, 0), Coord(0, 2)],
+    effect: VictoryPointEffect(2)
+  ),
+  (
+    cost: BuildingCost(3, 2, 2),
+    shape: [Coord(0, 0), Coord(0, 1), Coord(1, 1), Coord(2, 1)],
+    effect: VictoryPointEffect(3)
+  ),
+  (
+    cost: BuildingCost(3, 2, 2),
+    shape: [Coord(0, 1), Coord(1, 1), Coord(1, 0), Coord(2, 0)],
+    effect: VictoryPointEffect(3)
+  ),
+  (
+    cost: BuildingCost(5, 1, 1),
+    shape: [
+      Coord(0, 0),
+      Coord(1, 1),
+      Coord(1, 0),
+      Coord(0, 1),
+      Coord(2, 0),
+      Coord(2, 1)
+    ],
+    effect: VictoryPointEffect(5)
+  ),
+  (
+    cost: BuildingCost(4, 2, 1),
+    shape: [
+      Coord(0, 1),
+      Coord(1, 1),
+      Coord(2, 1),
+      Coord(3, 1),
+      Coord(4, 1),
+      Coord(4, 0)
+    ],
+    effect: VictoryPointEffect(5)
+  ),
+  (
+    cost: BuildingCost(1, 3, 4),
+    shape: [Coord(2, 2), Coord(2, 1), Coord(1, 1), Coord(0, 1), Coord(0, 0)],
+    effect: VictoryPointEffect(6)
+  ),
+  (
+    cost: BuildingCost(4, 2, 3),
+    shape: [
+      Coord(0, 1),
+      Coord(0, 2),
+      Coord(2, 1),
+      Coord(0, 0),
+      Coord(1, 0),
+      Coord(2, 0)
+    ],
+    effect: VictoryPointEffect(6)
+  ),
+  (
+    cost: BuildingCost(3, 2, 4),
+    shape: [Coord(0, 0), Coord(0, 1), Coord(1, 1), Coord(2, 1), Coord(2, 0)],
+    effect: VictoryPointEffect(6)
+  ),
+  (
+    cost: BuildingCost(1, 4, 3),
+    shape: [
+      Coord(1, 1),
+      Coord(3, 1),
+      Coord(0, 0),
+      Coord(1, 0),
+      Coord(2, 0),
+      Coord(3, 0)
+    ],
+    effect: VictoryPointEffect(6)
+  ),
+  (
+    cost: BuildingCost(6, 2, 1),
+    shape: [Coord(1, 0), Coord(0, 0)],
+    effect: BonusCupEffect(1)
+  ),
+  (
+    cost: BuildingCost(2, 2, 2),
+    shape: [Coord(1, 1), Coord(0, 1), Coord(1, 0), Coord(2, 1)],
+    effect: BonusCupEffect(1)
+  ),
+  (
+    cost: BuildingCost(6, 2, 3),
+    shape: [
+      Coord(1, 1),
+      Coord(0, 1),
+      Coord(1, 0),
+      Coord(2, 1),
+      Coord(2, 0),
+      Coord(3, 1)
+    ],
+    effect: BonusCupEffect(2)
+  ),
+  (
+    cost: BuildingCost(2, 1, 3),
+    shape: [Coord(1, 0), Coord(0, 0), Coord(2, 0)],
+    effect: ContremaitreEffect(1)
+  ),
+  (
+    cost: BuildingCost(6, 2, 3),
+    shape: [Coord(1, 0), Coord(0, 0), Coord(2, 0), Coord(3, 0), Coord(4, 0)],
+    effect: ContremaitreEffect(2)
+  ),
+  (
+    cost: BuildingCost(3, 2, 0),
+    shape: [Coord(1, 1), Coord(0, 1), Coord(0, 0), Coord(1, 0), Coord(2, 0)],
+    effect: ReserveEffect(4)
+  ),
+  (
+    cost: BuildingCost(3, 1, 3),
+    shape: [Coord(1, 0), Coord(0, 0), Coord(2, 0)],
+    effect: DefenseEffect(1)
+  ),
+  (
+    cost: BuildingCost(5, 2, 1),
+    shape: [Coord(1, 1), Coord(0, 1), Coord(2, 1), Coord(1, 0), Coord(2, 0)],
+    effect: DefenseEffect(1)
+  ),
+  (
+    cost: BuildingCost(3, 2, 6),
+    shape: [
+      Coord(1, 1),
+      Coord(0, 1),
+      Coord(2, 1),
+      Coord(2, 0),
+      Coord(0, 0),
+      Coord(3, 0),
+      Coord(3, 1)
+    ],
+    effect: DefenseEffect(2)
+  ),
+  (
+    cost: BuildingCost(3, 2, 2),
+    shape: [Coord(1, 1), Coord(0, 1), Coord(0, 0)],
+    effect: AttackEffect(1)
+  ),
+  (
+    cost: BuildingCost(8, 1, 1),
+    shape: [Coord(1, 1), Coord(0, 1), Coord(0, 0), Coord(1, 0)],
+    effect: AttackEffect(1)
+  ),
+  (
+    cost: BuildingCost(5, 4, 4),
+    shape: [Coord(1, 1), Coord(0, 1), Coord(0, 0), Coord(1, 0), Coord(2, 1)],
+    effect: AttackEffect(2)
+  ),
 ];
 
 class BuildingCost {
@@ -443,4 +479,17 @@ class BuildingCost {
   int sandCost(int woodCost, int mudCost, int stoneCost) {
     return wood * woodCost + mud * mudCost + stone * stoneCost;
   }
+}
+
+class GameConfig {
+  final int themeIndex;
+
+  final int nbTeams;
+  final int gridSize;
+
+  /// [duplicatedBuildings] >= 1
+  final int duplicatedBuildings;
+
+  GameConfig(
+      this.themeIndex, this.nbTeams, this.gridSize, this.duplicatedBuildings);
 }

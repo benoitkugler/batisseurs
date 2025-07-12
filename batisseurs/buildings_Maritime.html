@@ -1,0 +1,429 @@
+<html>
+  <style>
+    table {
+      border: 1px solid black;
+      border-collapse: collapse;
+      font-size: 22;
+    }
+
+    th {
+      padding: 12px 6px;
+    }
+
+    td,
+    th {
+      border: 1px solid black;
+      text-align: center;
+      padding: 4px 4px;
+    }
+
+    th > img {
+      width: 50px;
+      height: 50px;
+    }
+    td > img {
+      width: 20px;
+      height: 20px;
+    }
+
+    /* Shapes */
+    table.shape {
+      border: transparent;
+      display: inline-block;
+    }
+
+    table.shape td {
+      padding: 0px;
+      margin: 0px;
+      width: 20px;
+      height: 20px;
+    }
+
+    td.cell-on {
+      border: 1px solid black;
+    }
+
+    td.cell-off {
+      border: transparent;
+    }
+  </style>
+  <body>
+      <h2>Liste des bâtiments</h2>
+
+  <table style='margin: auto'>
+    <tr style="background-color: lightblue">
+      <th colspan="6">Bâtiments à points de victoire</th>
+    </tr>
+    <tr style="background-color: lightblue">
+      <th rowspan="2">Nom</th>
+      <th>Gain</th>
+      <th colspan="3">Coût</th>
+      <th rowspan="2">Forme</th>
+    </tr>
+    <tr style="background-color: lightblue">
+      <th><img src="assets/victory.png"/></th>
+      <th><img src="assets/planche.png"/></th>
+      <th><img src="assets/coquillage.png"/></th>
+      <th><img src="assets/corail.png"/></th>
+    </tr>
+        <tr>
+        <td style="text-align: left">Marché</td>
+        <td>1</td>
+        <td>3</td>
+        <td>0</td>
+        <td>0</td>
+        <td>    <table class='shape'>
+      <tr><td class='cell-on'></td><td class='cell-on'></td><td class='cell-on'></td></tr>
+    </table>
+    </td>
+      </tr>
+    
+    <tr>
+        <td style="text-align: left">Forum</td>
+        <td>3</td>
+        <td>3</td>
+        <td>2</td>
+        <td>2</td>
+        <td>    <table class='shape'>
+      <tr><td class='cell-off'></td><td class='cell-on'></td><td class='cell-on'></td></tr>
+<tr><td class='cell-on'></td><td class='cell-on'></td><td class='cell-off'></td></tr>
+    </table>
+    </td>
+      </tr>
+    
+    <tr>
+        <td style="text-align: left">Chambre de commerce</td>
+        <td>6</td>
+        <td>1</td>
+        <td>3</td>
+        <td>4</td>
+        <td>    <table class='shape'>
+      <tr><td class='cell-on'></td><td class='cell-off'></td><td class='cell-off'></td></tr>
+<tr><td class='cell-on'></td><td class='cell-on'></td><td class='cell-on'></td></tr>
+<tr><td class='cell-off'></td><td class='cell-off'></td><td class='cell-on'></td></tr>
+    </table>
+    </td>
+      </tr>
+    
+    <tr>
+        <td style="text-align: left">Obélisque</td>
+        <td>2</td>
+        <td>0</td>
+        <td>1</td>
+        <td>1</td>
+        <td>    <table class='shape'>
+      <tr><td class='cell-on'></td><td class='cell-off'></td></tr>
+<tr><td class='cell-on'></td><td class='cell-on'></td></tr>
+    </table>
+    </td>
+      </tr>
+    
+    <tr>
+        <td style="text-align: left">Statue</td>
+        <td>2</td>
+        <td>1</td>
+        <td>1</td>
+        <td>1</td>
+        <td>    <table class='shape'>
+      <tr><td class='cell-on'></td><td class='cell-on'></td></tr>
+<tr><td class='cell-off'></td><td class='cell-on'></td></tr>
+    </table>
+    </td>
+      </tr>
+    
+    <tr>
+        <td style="text-align: left">Jardins</td>
+        <td>5</td>
+        <td>5</td>
+        <td>1</td>
+        <td>1</td>
+        <td>    <table class='shape'>
+      <tr><td class='cell-on'></td><td class='cell-on'></td><td class='cell-on'></td></tr>
+<tr><td class='cell-on'></td><td class='cell-on'></td><td class='cell-on'></td></tr>
+    </table>
+    </td>
+      </tr>
+    
+    <tr>
+        <td style="text-align: left">Théâtre</td>
+        <td>6</td>
+        <td>3</td>
+        <td>0</td>
+        <td>4</td>
+        <td>    <table class='shape'>
+      <tr><td class='cell-on'></td><td class='cell-on'></td><td class='cell-on'></td></tr>
+<tr><td class='cell-on'></td><td class='cell-off'></td><td class='cell-on'></td></tr>
+<tr><td class='cell-on'></td><td class='cell-off'></td><td class='cell-off'></td></tr>
+    </table>
+    </td>
+      </tr>
+    
+    <tr>
+        <td style="text-align: left">Panthéon</td>
+        <td>1</td>
+        <td>0</td>
+        <td>0</td>
+        <td>1</td>
+        <td>    <table class='shape'>
+      <tr><td class='cell-on'></td><td class='cell-on'></td></tr>
+<tr><td class='cell-on'></td><td class='cell-off'></td></tr>
+    </table>
+    </td>
+      </tr>
+    
+    <tr>
+        <td style="text-align: left">Sénat</td>
+        <td>3</td>
+        <td>3</td>
+        <td>2</td>
+        <td>2</td>
+        <td>    <table class='shape'>
+      <tr><td class='cell-on'></td><td class='cell-off'></td><td class='cell-off'></td></tr>
+<tr><td class='cell-on'></td><td class='cell-on'></td><td class='cell-on'></td></tr>
+    </table>
+    </td>
+      </tr>
+    
+    <tr>
+        <td style="text-align: left">Hôtel de ville</td>
+        <td>6</td>
+        <td>5</td>
+        <td>4</td>
+        <td>4</td>
+        <td>    <table class='shape'>
+      <tr><td class='cell-on'></td><td class='cell-off'></td><td class='cell-on'></td></tr>
+<tr><td class='cell-on'></td><td class='cell-on'></td><td class='cell-on'></td></tr>
+    </table>
+    </td>
+      </tr>
+    
+    <tr>
+        <td style="text-align: left">Officine</td>
+        <td>2</td>
+        <td>2</td>
+        <td>1</td>
+        <td>0</td>
+        <td>    <table class='shape'>
+      <tr><td class='cell-off'></td><td class='cell-on'></td></tr>
+<tr><td class='cell-on'></td><td class='cell-on'></td></tr>
+    </table>
+    </td>
+      </tr>
+    
+    <tr>
+        <td style="text-align: left">Laboratoire</td>
+        <td>2</td>
+        <td>4</td>
+        <td>1</td>
+        <td>1</td>
+        <td>    <table class='shape'>
+      <tr><td class='cell-on'></td><td class='cell-off'></td></tr>
+<tr><td class='cell-on'></td><td class='cell-on'></td></tr>
+    </table>
+    </td>
+      </tr>
+    
+    <tr>
+        <td style="text-align: left">Observatoire</td>
+        <td>5</td>
+        <td>4</td>
+        <td>2</td>
+        <td>1</td>
+        <td>    <table class='shape'>
+      <tr><td class='cell-off'></td><td class='cell-off'></td><td class='cell-off'></td><td class='cell-off'></td><td class='cell-on'></td></tr>
+<tr><td class='cell-on'></td><td class='cell-on'></td><td class='cell-on'></td><td class='cell-on'></td><td class='cell-on'></td></tr>
+    </table>
+    </td>
+      </tr>
+    
+    <tr>
+        <td style="text-align: left">Académie</td>
+        <td>6</td>
+        <td>1</td>
+        <td>2</td>
+        <td>3</td>
+        <td>    <table class='shape'>
+      <tr><td class='cell-on'></td><td class='cell-on'></td><td class='cell-on'></td><td class='cell-on'></td></tr>
+<tr><td class='cell-off'></td><td class='cell-on'></td><td class='cell-off'></td><td class='cell-on'></td></tr>
+    </table>
+    </td>
+      </tr>
+    
+  </table>
+
+  <div style="break-after: page"></div>
+   <h2>Liste des bâtiments</h2>
+
+  <table style='margin: auto'>
+    <tr style="background-color: lightgreen">
+      <th colspan="6">Bâtiments à ressources</th>
+    </tr>
+    <tr style="background-color: lightgreen">
+      <th rowspan="2">Nom</th>
+      <th rowspan="2">Gain</th>
+      <th colspan="3">Coût</th>
+      <th rowspan="2">Forme</th>
+    </tr>
+    <tr style="background-color: lightgreen">
+      <th><img src="assets/planche.png"/></th>
+      <th><img src="assets/coquillage.png"/></th>
+      <th><img src="assets/corail.png"/></th>
+    </tr>
+        <tr>
+        <td style="text-align: left">Bassin argileux</td>
+        <td><img src='assets/cup.png' /></td>
+        <td>7</td>
+        <td>2</td>
+        <td>2</td>
+        <td>    <table class='shape'>
+      <tr><td class='cell-on'></td><td class='cell-on'></td></tr>
+    </table>
+    </td>
+      </tr>
+    
+    <tr>
+        <td style="text-align: left">Poterie</td>
+        <td><img src='assets/cup.png' /></td>
+        <td>4</td>
+        <td>1</td>
+        <td>1</td>
+        <td>    <table class='shape'>
+      <tr><td class='cell-off'></td><td class='cell-on'></td><td class='cell-off'></td></tr>
+<tr><td class='cell-on'></td><td class='cell-on'></td><td class='cell-on'></td></tr>
+    </table>
+    </td>
+      </tr>
+    
+    <tr>
+        <td style="text-align: left">Atelier</td>
+        <td><img src='assets/cup.png' /><img src='assets/cup.png' /></td>
+        <td>8</td>
+        <td>4</td>
+        <td>3</td>
+        <td>    <table class='shape'>
+      <tr><td class='cell-off'></td><td class='cell-on'></td><td class='cell-on'></td><td class='cell-off'></td></tr>
+<tr><td class='cell-on'></td><td class='cell-on'></td><td class='cell-on'></td><td class='cell-on'></td></tr>
+    </table>
+    </td>
+      </tr>
+    
+    <tr>
+        <td style="text-align: left">Ecole des arts</td>
+        <td><img src='assets/contremaitre.png' /></td>
+        <td>2</td>
+        <td>1</td>
+        <td>3</td>
+        <td>    <table class='shape'>
+      <tr><td class='cell-on'></td><td class='cell-on'></td><td class='cell-on'></td></tr>
+    </table>
+    </td>
+      </tr>
+    
+    <tr>
+        <td style="text-align: left">Ecole d'architecture</td>
+        <td><img src='assets/contremaitre.png' /><img src='assets/contremaitre.png' /></td>
+        <td>6</td>
+        <td>3</td>
+        <td>4</td>
+        <td>    <table class='shape'>
+      <tr><td class='cell-on'></td><td class='cell-on'></td><td class='cell-on'></td><td class='cell-on'></td><td class='cell-on'></td></tr>
+    </table>
+    </td>
+      </tr>
+    
+    <tr>
+        <td style="text-align: left">Réserve</td>
+        <td><img src='assets/reserve.png' /><img src='assets/reserve.png' /><img src='assets/reserve.png' /><img src='assets/reserve.png' /></td>
+        <td>3</td>
+        <td>1</td>
+        <td>0</td>
+        <td>    <table class='shape'>
+      <tr><td class='cell-on'></td><td class='cell-on'></td><td class='cell-on'></td></tr>
+<tr><td class='cell-on'></td><td class='cell-on'></td><td class='cell-off'></td></tr>
+    </table>
+    </td>
+      </tr>
+    
+    <tr>
+        <td style="text-align: left">Petite tour de garde</td>
+        <td><img src='assets/shield.png' /></td>
+        <td>3</td>
+        <td>1</td>
+        <td>3</td>
+        <td>    <table class='shape'>
+      <tr><td class='cell-on'></td><td class='cell-on'></td><td class='cell-on'></td></tr>
+    </table>
+    </td>
+      </tr>
+    
+    <tr>
+        <td style="text-align: left">Grande tour de garde</td>
+        <td><img src='assets/shield.png' /></td>
+        <td>5</td>
+        <td>2</td>
+        <td>0</td>
+        <td>    <table class='shape'>
+      <tr><td class='cell-off'></td><td class='cell-on'></td><td class='cell-on'></td></tr>
+<tr><td class='cell-on'></td><td class='cell-on'></td><td class='cell-on'></td></tr>
+    </table>
+    </td>
+      </tr>
+    
+    <tr>
+        <td style="text-align: left">Forteresse</td>
+        <td><img src='assets/shield.png' /><img src='assets/shield.png' /></td>
+        <td>3</td>
+        <td>2</td>
+        <td>6</td>
+        <td>    <table class='shape'>
+      <tr><td class='cell-on'></td><td class='cell-off'></td><td class='cell-on'></td><td class='cell-on'></td></tr>
+<tr><td class='cell-on'></td><td class='cell-on'></td><td class='cell-on'></td><td class='cell-on'></td></tr>
+    </table>
+    </td>
+      </tr>
+    
+    <tr>
+        <td style="text-align: left">Armurerie</td>
+        <td><img src='assets/swords.png' /></td>
+        <td>3</td>
+        <td>2</td>
+        <td>2</td>
+        <td>    <table class='shape'>
+      <tr><td class='cell-on'></td><td class='cell-off'></td></tr>
+<tr><td class='cell-on'></td><td class='cell-on'></td></tr>
+    </table>
+    </td>
+      </tr>
+    
+    <tr>
+        <td style="text-align: left">Ecurie</td>
+        <td><img src='assets/swords.png' /></td>
+        <td>8</td>
+        <td>0</td>
+        <td>0</td>
+        <td>    <table class='shape'>
+      <tr><td class='cell-on'></td><td class='cell-on'></td></tr>
+<tr><td class='cell-on'></td><td class='cell-on'></td></tr>
+    </table>
+    </td>
+      </tr>
+    
+    <tr>
+        <td style="text-align: left">Camp d'entrainement</td>
+        <td><img src='assets/swords.png' /><img src='assets/swords.png' /></td>
+        <td>5</td>
+        <td>4</td>
+        <td>4</td>
+        <td>    <table class='shape'>
+      <tr><td class='cell-on'></td><td class='cell-on'></td><td class='cell-off'></td></tr>
+<tr><td class='cell-on'></td><td class='cell-on'></td><td class='cell-on'></td></tr>
+    </table>
+    </td>
+      </tr>
+    
+  </table>
+
+  <div style="break-after: page"></div>
+
+  </body>
+</html>

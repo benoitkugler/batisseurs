@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:batisseurs/logic/grid.dart';
 import 'package:batisseurs/logic/models.dart';
+import 'package:batisseurs/logic/theme.dart';
 
 const _template = """
 <html>
@@ -74,9 +75,9 @@ const _tableTemplate1 = """
     </tr>
     <tr style="background-color: lightblue">
       <th><img src="assets/victory.png"/></th>
-      <th><img src="assets/wood.png"/></th>
-      <th><img src="assets/mud.png"/></th>
-      <th><img src="assets/stone.png"/></th>
+      <th><img src="__r1__"/></th>
+      <th><img src="__r2__"/></th>
+      <th><img src="__r3__"/></th>
     </tr>
     __rows__
   </table>
@@ -98,9 +99,9 @@ const _tableTemplate2 = """
       <th rowspan="2">Forme</th>
     </tr>
     <tr style="background-color: lightgreen">
-      <th><img src="assets/wood.png"/></th>
-      <th><img src="assets/mud.png"/></th>
-      <th><img src="assets/stone.png"/></th>
+      <th><img src="__r1__"/></th>
+      <th><img src="__r2__"/></th>
+      <th><img src="__r3__"/></th>
     </tr>
     __rows__
   </table>
@@ -108,30 +109,34 @@ const _tableTemplate2 = """
   <div style="break-after: page"></div>
 """;
 
-String _buildingCostsHTML() {
-  final t1 =
-      _table(_tableTemplate1, List.generate(14, (i) => BuildingType.values[i]));
-  final t2 = _table(
-      _tableTemplate2, List.generate(12, (i) => BuildingType.values[14 + i]));
+String _buildingCostsHTML(GameTheme theme) {
+  final t1 = _table(
+      _tableTemplate1, List.generate(14, (i) => BuildingType.values[i]), theme);
+  final t2 = _table(_tableTemplate2,
+      List.generate(12, (i) => BuildingType.values[14 + i]), theme);
   return _template.replaceFirst("__tables__", "$t1 $t2");
 }
 
-String _table(String template, List<BuildingType> buildings) {
-  final rows = buildings.map((v) => v.rowHTML()).join("\n");
-  return template.replaceFirst("__rows__", rows);
+String _table(String template, List<BuildingType> buildings, GameTheme theme) {
+  final rows = buildings.map((v) => v.rowHTML(theme)).join("\n");
+  return template
+      .replaceFirst("__r1__", theme.r1.path)
+      .replaceFirst("__r2__", theme.r2.path)
+      .replaceFirst("__r3__", theme.r3.path)
+      .replaceFirst("__rows__", rows);
 }
 
-void exportBuildingCosts() {
-  final file = File("${Directory.current.path}/buildings.html");
-  file.writeAsString(_buildingCostsHTML());
+void exportBuildingCosts(GameTheme theme) {
+  final file = File("${Directory.current.path}/buildings_${theme.name}.html");
+  file.writeAsString(_buildingCostsHTML(theme));
 }
 
 extension on BuildingType {
-  String rowHTML() {
+  String rowHTML(GameTheme theme) {
     final props = buildingProperties[index];
     return """
     <tr>
-        <td style="text-align: left">${props.name}</td>
+        <td style="text-align: left">${theme.buildingNames[index]}</td>
         <td>${props.effect.toHTML()}</td>
         <td>${props.cost.wood}</td>
         <td>${props.cost.mud}</td>
