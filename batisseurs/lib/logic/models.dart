@@ -132,9 +132,8 @@ class TeamExt {
   }
 
   /// [stats] sum the bonus of each building
-  /// Note that each team has a defaut stock of 2
   Stats stats() {
-    final out = Stats(stock: 2);
+    final out = Stats(stock: 0);
     for (var building in buildings) {
       final i = building.type.index;
       buildingProperties[i].effect.apply(out);
@@ -448,9 +447,9 @@ const buildingProperties = <BuildingProperties>[
     effect: ContremaitreEffect(2)
   ),
   (
-    cost: BuildingCost(3, 2, 0),
+    cost: BuildingCost(3, 0, 0),
     shape: [Coord(1, 1), Coord(0, 1), Coord(0, 0), Coord(1, 0), Coord(2, 0)],
-    effect: ReserveEffect(4)
+    effect: ReserveEffect(2)
   ),
   (
     cost: BuildingCost(3, 1, 3),

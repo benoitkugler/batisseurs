@@ -9,7 +9,7 @@ import 'package:flutter/material.dart';
 const maxNbTeam = 7;
 
 /// proposed grid configs
-const gridSizes = [8, 10, 12];
+const gridSizes = [5, 7, 9];
 
 class GameConfigDialog extends StatefulWidget {
   final void Function(GameConfig) launch;
@@ -22,7 +22,7 @@ class GameConfigDialog extends StatefulWidget {
 class _GameConfigDialogState extends State<GameConfigDialog> {
   int themeIndex = 0;
   int nbTeams = 3;
-  int gridSize = 10;
+  int gridSize = 7;
   int duplicatedBuildings = 1;
 
   @override
