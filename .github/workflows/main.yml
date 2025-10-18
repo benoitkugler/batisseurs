@@ -17,4 +17,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: app.exe
-          path: batisseurs/build/windows/x64/runner/Release/batisseurs.exe
+          path: batisseurs/build/windows/x64/runner/Release
