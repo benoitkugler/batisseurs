@@ -10,4 +10,6 @@ jobs:
         uses: subosito/flutter-action@v2
         with:
           channel: stable
-      - run: flutter build windows
+      - name: Build app 
+        working-directory: ./batisseurs
+        run: flutter build windows
