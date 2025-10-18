@@ -21,7 +21,7 @@ const locales = [
 ];
 
 void main() {
-  if (Platform.isLinux) {
+  if (Platform.isLinux || Platform.isWindows) {
     // Initialize FFI
     sqfliteFfiInit();
     // Change the default factory
