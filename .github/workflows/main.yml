@@ -13,3 +13,8 @@ jobs:
       - name: Build app 
         working-directory: ./batisseurs
         run: flutter build windows
+      - name: Archive app
+        uses: actions/upload-artifact@v4
+        with:
+          name: app.exe
+          path: batisseurs/build/windows/x64/runner/Release/batisseurs.exe
