@@ -16,5 +16,5 @@ jobs:
       - name: Archive app
         uses: actions/upload-artifact@v4
         with:
-          name: app.exe
+          name: batisseurs
           path: batisseurs/build/windows/x64/runner/Release
